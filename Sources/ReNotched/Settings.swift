@@ -6,14 +6,10 @@ enum Pref {
     static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? true }
 }
 
-/// Liquid Glass on macOS 26+, material otherwise.
 private extension View {
-    @ViewBuilder func card(_ radius: CGFloat = 22) -> some View {
-        if #available(macOS 26, *) {
-            glassEffect(.regular, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-        } else {
-            background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-        }
+    /// Liquid Glass card.
+    func card(_ radius: CGFloat = 22) -> some View {
+        glassEffect(.regular, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
 }
 
@@ -51,7 +47,7 @@ struct SettingsView: View {
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
                 }
             }
-            .padding(.top, 4)
+            .padding(.top, 12)
 
             VStack(spacing: 0) {
                 Row(symbol: "speaker.wave.2.fill", color: .blue, title: "Volume", isOn: $volume)
@@ -84,7 +80,7 @@ struct SettingsView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: 520)
+        .frame(width: 400, height: 530)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }

@@ -1,9 +1,10 @@
 #!/bin/bash
-# Builds ReNotched.app into ./build
+# Builds ReNotched..app (shown as "ReNotched.") into ./build
 set -euo pipefail
 cd "$(dirname "$0")"
 swift build -c release
-APP=build/ReNotched.app
+# The file name ends in a dot so Finder and the Dock show "ReNotched."
+APP="build/ReNotched..app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS"
 cp .build/release/ReNotched "$APP/Contents/MacOS/ReNotched"

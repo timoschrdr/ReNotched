@@ -19,7 +19,8 @@ final class PowerMonitor {
 
     private func check(announce: Bool = true) {
         let info = IOPSCopyPowerSourcesInfo().takeRetainedValue()
-        guard let list = IOPSCopyPowerSourcesList(info).takeRetainedValue() as? [CFTypeRef], let ps = list.first,
+        let list = IOPSCopyPowerSourcesList(info).takeRetainedValue() as [CFTypeRef]
+        guard let ps = list.first,
               let d = IOPSGetPowerSourceDescription(info, ps)?.takeUnretainedValue() as? [String: Any] else { return }
         let plugged = (d[kIOPSPowerSourceStateKey] as? String) == kIOPSACPowerValue
         let percent = d[kIOPSCurrentCapacityKey] as? Int ?? 0

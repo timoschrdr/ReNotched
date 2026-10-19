@@ -32,17 +32,17 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 
 ## Requirements
 
-- macOS 14 or later (the Liquid Glass look of the settings window needs macOS 26 or later)
-- Xcode or the Swift 5.9+ toolchain to build it
+- macOS 26 or later (the settings window uses Liquid Glass)
+- Xcode 26 or later (or a matching Swift toolchain) to build it
 - A MacBook with a notch is recommended
 
 ## Build and run
 
 ```bash
-./build.sh && open build/ReNotched.app
+./build.sh && open build/ReNotched..app
 ```
 
-The build script compiles the Swift package, assembles the app bundle and signs it locally (ad hoc), so no Apple Developer account is needed. To use it every day, drag `build/ReNotched.app` to your Applications folder.
+The build script compiles the Swift package, assembles the app bundle and signs it locally (ad hoc), so no Apple Developer account is needed. To use it every day, drag `build/ReNotched..app` to your Applications folder. The file name ends in a dot on purpose, so Finder and the Dock show the name "ReNotched."
 
 If you want to ship your own build, change the bundle identifier (`com.renotched.ReNotched`) in `Info.plist` and sign with your own team.
 
