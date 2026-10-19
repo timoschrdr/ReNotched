@@ -25,8 +25,11 @@ enum IslandMode: Equatable {
 final class IslandModel: ObservableObject {
     @Published var notch = CGSize(width: 185, height: 32)
     @Published var transient: Transient?
-    @Published var track: Track?
-    @Published var isPlaying = false
+    @Published var track: Track? { didSet { updateDormancy() } }
+    @Published var isPlaying = false { didSet { updateDormancy() } }
+    /// True once playback has been paused for 30 s: the island closes completely until playback resumes.
+    @Published private(set) var dormant = false
+    private var dormantTask: Task<Void, Never>?
     var position: Double = 0
     var positionDate = Date()
     var rate: Double = 1
@@ -43,7 +46,7 @@ final class IslandModel: ObservableObject {
             case .device: return .device
             }
         }
-        if track != nil { return expanded ? .musicExpanded : .musicCompact }
+        if track != nil && !dormant { return expanded ? .musicExpanded : .musicCompact }
         return .idle
     }
 
@@ -71,6 +74,22 @@ final class IslandModel: ObservableObject {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
             guard !Task.isCancelled else { return }
             self?.transient = nil
+        }
+    }
+
+    private func updateDormancy() {
+        if track != nil && !isPlaying {
+            guard dormantTask == nil, !dormant else { return }
+            dormantTask = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(30))
+                guard !Task.isCancelled, let self else { return }
+                self.dormantTask = nil
+                self.expanded = false
+                self.dormant = true
+            }
+        } else {
+            dormantTask?.cancel(); dormantTask = nil
+            if dormant { dormant = false }
         }
     }
 

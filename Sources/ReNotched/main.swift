@@ -117,8 +117,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(withTitle: NSLocalizedString("Settings…", comment: ""), action: #selector(showSettings), keyEquivalent: ",").target = self
         menu.addItem(.separator())
-        menu.addItem(withTitle: NSLocalizedString("Hide ReNotched", comment: ""), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        menu.addItem(withTitle: NSLocalizedString("Quit ReNotched", comment: ""), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: NSLocalizedString("Hide ReNotched.", comment: ""), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        menu.addItem(withTitle: NSLocalizedString("Quit ReNotched.", comment: ""), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = menu
         NSApp.mainMenu = main
     }
@@ -126,7 +126,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func showSettings() {
         if settingsWindow == nil {
             let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
-            w.title = "ReNotched"
+            w.title = "ReNotched."
             w.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden

@@ -298,6 +298,8 @@ private struct CoverSlot: View {
             ArtworkView(image: model.track?.artwork, size: size, radius: radius)
                 .id(model.track?.artID ?? 0)
                 .transition(.cover)
+                .scaleEffect(model.isPlaying ? 1 : 0.78)   // shrinks while paused, like the real Dynamic Island
+                .animation(.spring(response: 0.4, dampingFraction: 0.65), value: model.isPlaying)
         }
         .frame(width: size, height: size)
         .animation(.spring(response: 0.6, dampingFraction: 0.58), value: model.track?.artID)
@@ -346,8 +348,6 @@ private struct ExpandedMusicContent: View {
         VStack(spacing: 10) {
             HStack(spacing: 12) {
                 CoverSlot(model: model, size: 52, radius: 11)
-                    .scaleEffect(model.isPlaying ? 1 : 0.92)
-                    .animation(.spring(response: 0.4, dampingFraction: 0.6), value: model.isPlaying)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.track?.title ?? "")
                         .font(.system(size: 14, weight: .semibold)).foregroundStyle(.white).lineLimit(1)

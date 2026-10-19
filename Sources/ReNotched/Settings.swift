@@ -47,7 +47,7 @@ struct SettingsView: View {
             HStack(spacing: 14) {
                 Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("ReNotched").font(.title2.weight(.semibold))
+                    Text("ReNotched.").font(.title2.weight(.semibold))
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
                 }
             }
@@ -76,7 +76,7 @@ struct SettingsView: View {
                 Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.green)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Privacy").font(.subheadline.weight(.semibold))
-                    Text("ReNotched works entirely on your Mac. It collects, stores and sends no data and has no network access. Clipboard text, now-playing info and Bluetooth device names are only read to show them on the island and are never saved.")
+                    Text("ReNotched. works entirely on your Mac. It collects, stores and sends no data and has no network access. Clipboard text, now-playing info and Bluetooth device names are only read to show them on the island and are never saved.")
                         .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -88,7 +88,7 @@ struct SettingsView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
-                    .help("Quit ReNotched")
+                    .help("Quit ReNotched.")
             }
         }
     }
