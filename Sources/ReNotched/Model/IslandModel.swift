@@ -6,7 +6,7 @@ enum Transient: Equatable {
     case copied(preview: String, symbol: String)
     case charging(percent: Int, plugged: Bool)
     case device(name: String, battery: Int?)
-    case focus(name: String, symbol: String, on: Bool)
+    case focus(symbol: String, tint: String, on: Bool)
 }
 
 enum IslandMode: Equatable {
@@ -23,8 +23,6 @@ final class IslandModel: ObservableObject {
     @Published private(set) var expanded = false { didSet { refreshMode() } }
     /// True once playback has been paused for 30 s: the island closes completely until playback resumes.
     @Published private(set) var dormant = false { didSet { refreshMode() } }
-    /// True while a fullscreen app covers the built-in display.
-    @Published private(set) var hidden = false { didSet { refreshMode() } }
     @Published private(set) var mode = IslandMode.idle
 
     // Playback position is extrapolated from these, so they are not published.
@@ -44,7 +42,8 @@ final class IslandModel: ObservableObject {
         case .idle: return CGSize(width: w, height: h)
         case .volume: return CGSize(width: w + 2 * 76, height: h)
         case .copied: return CGSize(width: w + 2 * 84, height: h + 36)
-        case .device, .focus: return CGSize(width: w + 2 * 92, height: h + 32)
+        case .device: return CGSize(width: w + 2 * 92, height: h + 32)
+        case .focus: return CGSize(width: w + 2 * 76, height: h)
         case .musicCompact: return CGSize(width: w + 2 * 40, height: h)
         case .musicExpanded: return CGSize(width: max(w + 150, 380), height: h + 122)
         }
@@ -59,7 +58,6 @@ final class IslandModel: ObservableObject {
     // MARK: State changes
 
     func show(_ value: Transient, for seconds: Double = 1.8) {
-        guard !hidden else { return }
         transient = value
         transientTask?.cancel()
         transientTask = Task { [weak self] in
@@ -71,12 +69,6 @@ final class IslandModel: ObservableObject {
 
     func setExpanded(_ value: Bool) { if expanded != value { expanded = value } }
 
-    func setHidden(_ value: Bool) {
-        guard hidden != value else { return }
-        hidden = value
-        if value { transientTask?.cancel(); transient = nil; expanded = false }
-    }
-
     // MARK: Derived state
 
     private func refreshMode() {
@@ -85,7 +77,6 @@ final class IslandModel: ObservableObject {
     }
 
     private func computeMode() -> IslandMode {
-        if hidden { return .idle }
         if let transient {
             switch transient {
             case .volume, .charging: return .volume

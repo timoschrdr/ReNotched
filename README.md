@@ -18,11 +18,11 @@ The app is available in English and German and picks the language from your syst
 - **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys, AirPods and mute)
 - **Copying** – "Copied" with a preview of the text, file or image. Content marked as confidential by password managers is never previewed
 - **Charger** – a bolt and the battery level when you plug in or unplug the charger
-- **Focus** – the mode's icon and name when a Focus mode turns on or off. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
+- **Focus** – the mode's icon, in its own colour, and "On" or "Off" when a Focus mode turns on or off. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
 - **Headphones** – connecting Bluetooth headphones shows their name and, if the device reports it, the battery level
 - **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer and progress bar use the colour of the album cover and a new cover animates in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
 
-The island appears on the built-in display only, never on external monitors, and it collapses and stays away while an app is in fullscreen.
+The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
 
 Each indicator can be switched off in the app's settings window, which is also where you quit the app and enable **Launch at login**.
 
@@ -35,7 +35,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 - **Charger** uses IOKit power-source notifications, so there is no polling.
 - **Headphones** use IOBluetooth connect notifications.
 - **Focus** reads the Focus database in `~/Library/DoNotDisturb/DB` (read-only, change-triggered), which only works once you grant the app Full Disk Access in System Settings.
-- **Fullscreen** is detected with a read-only query of the active space type of the built-in display (a private CoreGraphics call that is only used for this check).
+- **Fullscreen:** the panel lives on one desktop space rather than on all spaces, so a fullscreen space never shows it. After a space change it is moved to the new desktop, unless that space is a fullscreen one. That check is a read-only query of the active space type (a private CoreGraphics call used only for this).
 - **Now playing** is read with the third-party [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because Apple restricted the private MediaRemote interface for regular apps in macOS 15.4. It runs as one long-lived helper process that only reports changes.
 
 ## Requirements

@@ -66,10 +66,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bluetooth.onConnect = { [weak self] name, battery in self?.show(Pref.device, .device(name: name, battery: battery), for: 3) }
         bluetooth.start()
 
-        var lastFocusName = "Focus"
+        var lastFocus = FocusMonitor.State(id: "", name: "", symbol: "moon.fill", tint: "systemIndigoColor")
         focus.onChange = { [weak self] state in
-            if let state { lastFocusName = state.name }
-            self?.show(Pref.focus, .focus(name: state?.name ?? lastFocusName, symbol: state?.symbol ?? "moon.fill", on: state != nil), for: 2.6)
+            if let state { lastFocus = state }
+            self?.show(Pref.focus, .focus(symbol: lastFocus.symbol, tint: lastFocus.tint, on: state != nil), for: 2.4)
         }
         if Pref.on(Pref.focus) { focus.start() }
         NotificationCenter.default.addObserver(forName: .focusPreferenceChanged, object: nil, queue: .main) { [weak self] _ in

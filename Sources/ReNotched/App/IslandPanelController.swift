@@ -7,8 +7,12 @@ final class NotchPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 }
 
-/// Owns the borderless panel over the notch: placement on the built-in display, click handling and
-/// hiding while an app is in fullscreen.
+/// Owns the borderless panel over the notch: placement on the built-in display and click handling.
+///
+/// The panel belongs to one desktop space (`.moveToActiveSpace`) instead of all spaces. A window on all spaces
+/// is also drawn for a frame or two when a fullscreen space becomes active; a window that lives on a desktop
+/// space is simply not part of the fullscreen space, so the island slides away with the desktop. After a space
+/// change it is moved to the new desktop, unless that space is a fullscreen one.
 @MainActor
 final class IslandPanelController {
     private let model: IslandModel
@@ -26,7 +30,7 @@ final class IslandPanelController {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 3)   // above the menu bar
-        panel.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]                   // no fullscreen spaces
+        panel.collectionBehavior = [.moveToActiveSpace, .ignoresCycle]
         panel.ignoresMouseEvents = true
         panel.isMovable = false
 
@@ -37,17 +41,14 @@ final class IslandPanelController {
 
     func start() {
         reposition()
-        watchSpaces()
 
         NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification,
                                                object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.reposition() }
         }
-        let workspace = NSWorkspace.shared.notificationCenter
-        for name in [NSWorkspace.activeSpaceDidChangeNotification, NSWorkspace.didActivateApplicationNotification] {
-            workspace.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.watchSpaces() }
-            }
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.activeSpaceDidChangeNotification,
+                                                          object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.watchSpaces() }
         }
 
         // Clicks: expand the compact island, collapse the expanded one.
@@ -82,32 +83,32 @@ final class IslandPanelController {
         let f = screen.frame
         panel.setFrame(NSRect(x: f.midX - panelSize.width / 2, y: f.maxY - panelSize.height,
                               width: panelSize.width, height: panelSize.height), display: true)
-        if !model.hidden { panel.orderFrontRegardless() }
+        moveToActiveDesktop()
     }
 
-    // MARK: Fullscreen
+    // MARK: Spaces
 
-    /// After a space change, polls for a moment: the fullscreen state can lag and even flip back for about a
-    /// second after the notification. The island hides at the first sign of fullscreen and only returns once
-    /// the display has been out of fullscreen for 1.6 s, so such a flicker cannot make it flash up in between.
+    private var isFullscreen: Bool {
+        guard let id = builtIn?.id else { return false }
+        return Spaces.isFullscreen(display: id)
+    }
+
+    /// Brings the island to the current desktop, but never into a fullscreen space.
+    private func moveToActiveDesktop() {
+        if builtIn != nil, !isFullscreen { panel.orderFrontRegardless() }
+    }
+
+    /// The fullscreen state of a new space can lag behind the notification, so poll briefly and move the
+    /// island once the space has been a normal desktop for 0.3 s.
     private func watchSpaces() {
         spaceWatch?.cancel()
         spaceWatch = Task { [weak self] in
-            var calm = 0   // consecutive polls without fullscreen
-            for _ in 0..<70 {
+            var calm = 0
+            for _ in 0..<25 {
                 guard let self, !Task.isCancelled else { return }
-                if let id = self.builtIn?.id, Spaces.isFullscreen(display: id) {
-                    calm = 0
-                    if !self.model.hidden { self.model.setHidden(true); self.panel.orderOut(nil) }
-                } else {
-                    calm += 1
-                    if self.model.hidden && calm >= 20 {            // 1.6 s out of fullscreen
-                        self.model.setHidden(false)
-                        if self.builtIn != nil { self.panel.orderFrontRegardless() }
-                    } else if !self.model.hidden && calm >= 25 {     // nothing happened for 2 s
-                        return
-                    }
-                }
+                if self.isFullscreen { return }          // nothing to do: the island stays on its desktop
+                calm += 1
+                if calm >= 4 { self.moveToActiveDesktop(); return }
                 try? await Task.sleep(for: .milliseconds(80))
             }
         }

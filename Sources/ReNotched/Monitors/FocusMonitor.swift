@@ -6,7 +6,7 @@ import Foundation
 /// database in `~/Library/DoNotDisturb/DB` (read-only). That folder is protected: the feature only works
 /// after the user grants Full Disk Access to the app. Without it, `isAvailable` is false and nothing happens.
 final class FocusMonitor {
-    struct State: Equatable { var id: String; var name: String; var symbol: String }
+    struct State: Equatable { var id: String; var name: String; var symbol: String; var tint: String }
 
     /// Called with the active mode, or nil when Focus was turned off.
     var onChange: ((State?) -> Void)?
@@ -68,27 +68,30 @@ final class FocusMonitor {
         return nil
     }
 
-    private static let builtIn: [String: (String, String)] = [
-        "com.apple.donotdisturb.mode.default": ("Do Not Disturb", "moon.fill"),
-        "com.apple.sleep.sleep-mode": ("Sleep", "bed.double.fill"),
-        "com.apple.focus.work": ("Work", "person.lanyardcard.fill"),
-        "com.apple.focus.personal-time": ("Personal", "person.fill"),
-        "com.apple.donotdisturb.mode.driving": ("Driving", "car.fill"),
-        "com.apple.focus.fitness": ("Fitness", "figure.run"),
-        "com.apple.focus.gaming": ("Gaming", "gamecontroller.fill"),
-        "com.apple.focus.mindfulness": ("Mindfulness", "apple.meditate"),
-        "com.apple.focus.reading": ("Reading", "book.fill"),
+    /// Fallbacks for the system's own modes: name, SF Symbol and tint.
+    private static let builtIn: [String: (String, String, String)] = [
+        "com.apple.donotdisturb.mode.default": ("Do Not Disturb", "moon.fill", "systemIndigoColor"),
+        "com.apple.sleep.sleep-mode": ("Sleep", "bed.double.fill", "systemTealColor"),
+        "com.apple.focus.work": ("Work", "person.lanyardcard.fill", "systemBlueColor"),
+        "com.apple.focus.personal-time": ("Personal", "person.fill", "systemPurpleColor"),
+        "com.apple.donotdisturb.mode.driving": ("Driving", "car.fill", "systemBlueColor"),
+        "com.apple.focus.fitness": ("Fitness", "figure.run", "systemGreenColor"),
+        "com.apple.focus.gaming": ("Gaming", "gamecontroller.fill", "systemIndigoColor"),
+        "com.apple.focus.mindfulness": ("Mindfulness", "apple.meditate", "systemTealColor"),
+        "com.apple.focus.reading": ("Reading", "book.fill", "systemOrangeColor"),
     ]
 
     /// Uses the name and symbol from the user's own mode configuration when available.
     private func describe(_ id: String) -> State {
         var name = Self.builtIn[id]?.0 ?? "Focus"
         var symbol = Self.builtIn[id]?.1 ?? "moon.fill"
+        var tint = Self.builtIn[id]?.2 ?? "systemIndigoColor"
         if let configs = (json("ModeConfigurations.json")?["data"] as? [[String: Any]])?.first?["modeConfigurations"] as? [String: Any],
            let mode = (configs[id] as? [String: Any])?["mode"] as? [String: Any] {
             if let n = mode["name"] as? String, !n.isEmpty { name = n }
             if let s = mode["symbolImageName"] as? String, !s.isEmpty { symbol = s }
+            if let t = mode["tintColorName"] as? String, !t.isEmpty { tint = t }
         }
-        return State(id: id, name: name, symbol: symbol)
+        return State(id: id, name: name, symbol: symbol, tint: tint)
     }
 }
