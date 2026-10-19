@@ -28,7 +28,7 @@ struct IslandView: View {
     var body: some View {
         let mode = model.mode
         let size = model.size(for: mode)
-        let expanded = [.copied, .device, .focus, .musicExpanded].contains(mode)
+        let expanded = [.copied, .device, .musicExpanded].contains(mode)
         let shape = UnevenRoundedRectangle(
             topLeadingRadius: 0,
             bottomLeadingRadius: expanded ? 30 : 15,
