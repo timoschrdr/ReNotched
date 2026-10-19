@@ -61,7 +61,7 @@ final class IslandModel: ObservableObject {
         case .idle: return CGSize(width: w, height: h)
         case .volume: return CGSize(width: w + 2 * 76, height: h)
         case .copied: return CGSize(width: w + 2 * 84, height: h + 36)
-        case .device: return CGSize(width: w + 2 * 92, height: h + 40)
+        case .device: return CGSize(width: w + 2 * 92, height: h + 32)
         case .musicCompact: return CGSize(width: w + 2 * 40, height: h)
         case .musicExpanded: return CGSize(width: max(w + 150, 380), height: h + 122)
         }
