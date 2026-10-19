@@ -7,13 +7,16 @@ final class BluetoothMonitor: NSObject {
     var onConnect: ((String, Int?) -> Void)?
     private var registration: IOBluetoothUserNotification?
     private var lastShown: [String: Date] = [:]
+    private var startDate = Date()
 
     func start() {
+        startDate = Date()
         registration = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(connected(_:device:)))
     }
 
     @objc private func connected(_ note: IOBluetoothUserNotification, device: IOBluetoothDevice) {
-        guard Self.isAudio(device) else { return }   // no mice, keyboards, …
+        // Registering reports devices that are already connected → ignore the first seconds.
+        guard Date().timeIntervalSince(startDate) > 3, Self.isAudio(device) else { return }   // no mice, keyboards, …
         announce(name: device.name ?? "", device: device)
     }
 

@@ -18,6 +18,7 @@ The app is available in English and German and picks the language from your syst
 - **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys, AirPods and mute)
 - **Copying** – "Copied" with a preview of the text, file or image. Content marked as confidential by password managers is never previewed
 - **Charger** – a bolt and the battery level when you plug in or unplug the charger
+- **Focus** – the mode's icon and name when a Focus mode turns on or off. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
 - **Headphones** – connecting Bluetooth headphones shows their name and, if the device reports it, the battery level
 - **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer and progress bar use the colour of the album cover and a new cover animates in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
 
@@ -33,6 +34,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 - **Copying** is detected by watching the pasteboard change counter a few times per second.
 - **Charger** uses IOKit power-source notifications, so there is no polling.
 - **Headphones** use IOBluetooth connect notifications.
+- **Focus** reads the Focus database in `~/Library/DoNotDisturb/DB` (read-only, change-triggered), which only works once you grant the app Full Disk Access in System Settings.
 - **Fullscreen** is detected with a read-only query of the active space type of the built-in display (a private CoreGraphics call that is only used for this check).
 - **Now playing** is read with the third-party [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because Apple restricted the private MediaRemote interface for regular apps in macOS 15.4. It runs as one long-lived helper process that only reports changes.
 
@@ -52,6 +54,20 @@ The build script compiles the Swift package, assembles the app bundle and signs 
 
 If you want to ship your own build, change the bundle identifier (`com.renotched.ReNotched`) in `Info.plist` and sign with your own team.
 
+## Project structure
+
+```
+Sources/ReNotched/
+  main.swift                 entry point
+  App/                       app delegate, the panel over the notch (placement, clicks, fullscreen)
+  Model/                     IslandModel (what the island shows) and Track
+  Monitors/                  one file per source: volume, clipboard, power, Bluetooth, Focus, now playing, spaces
+  Views/                     the island and one view per indicator; Views/Music for the player
+  Settings/                  settings window and preferences
+Vendor/                      mediaremote-adapter (BSD-3)
+Resources/                   app icon (Icon Composer format) and German strings
+```
+
 ## Usage
 
 1. Open the app once. Its settings window lets you choose which indicators you want.
@@ -64,6 +80,7 @@ ReNotched. does not collect, store or send any personal data. It has no accounts
 
 - **Clipboard:** the copied text, file name or image type is read only to show the preview on the island. It is kept in memory for a moment and never saved.
 - **Now playing:** title, artist, cover and progress come from macOS and are shown locally only.
+- **Focus (optional):** if you enable it and grant Full Disk Access, the app reads the name of the active Focus mode from the system's Focus database, only to show it. It reads nothing else in that folder and never stores or sends it. Leave it off and no access is needed.
 - **Bluetooth:** device names and battery levels are read only to show them when headphones connect.
 - **Stored on your Mac:** only your on/off choices in the app's preferences. Delete the preferences to remove them.
 

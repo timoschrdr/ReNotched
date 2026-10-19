@@ -16,3 +16,8 @@
 "Content" = "Inhalt";
 "Confidential content" = "Vertraulicher Inhalt";
 "Headphones" = "Kopfhörer";
+"Focus" = "Fokus";
+"On" = "An";
+"Off" = "Aus";
+"Focus needs Full Disk Access. Allow ReNotched. in System Settings, then reopen the app." = "Fokus braucht den Vollzugriff auf die Festplatte. Erlaube ReNotched. in den Systemeinstellungen und öffne die App danach neu.";
+"Open" = "Öffnen";

@@ -2,8 +2,13 @@ import ServiceManagement
 import SwiftUI
 
 enum Pref {
-    static let volume = "showVolume", copy = "showCopy", power = "showPower", device = "showDevice"
-    static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? true }
+    static let volume = "showVolume", copy = "showCopy", power = "showPower", device = "showDevice", focus = "showFocus"
+    /// Every indicator is on by default, except Focus, which needs Full Disk Access.
+    static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? (key != focus) }
+}
+
+extension Notification.Name {
+    static let focusPreferenceChanged = Notification.Name("ReNotched.focusPreferenceChanged")
 }
 
 private extension View {
@@ -37,6 +42,10 @@ private struct Row: View {
 }
 
 struct SettingsView: View {
+    /// Whether the Focus database can be read (Full Disk Access granted).
+    let focusAvailable: () -> Bool
+    @State private var focusReadable = true
+    @AppStorage(Pref.focus) private var focus = false
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
     @AppStorage(Pref.power) private var power = true
@@ -60,8 +69,20 @@ struct SettingsView: View {
                 Row(symbol: "doc.on.doc.fill", color: .orange, title: "Copying", isOn: $copy)
                 Row(symbol: "bolt.fill", color: .green, title: "Charger", isOn: $power)
                 Row(symbol: "headphones", color: .purple, title: "Headphones connected", isOn: $device)
+                Row(symbol: "moon.fill", color: .indigo, title: "Focus", isOn: $focus)
             }
             .padding(.vertical, 4).card()
+
+            if focus && !focusReadable {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("Focus needs Full Disk Access. Allow ReNotched. in System Settings, then reopen the app.")
+                        .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Button("Open") {
+                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+                    }.buttonStyle(.glass).controlSize(.small)
+                }
+                .padding(.horizontal, 6)
+            }
 
             Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
                 .card()
@@ -82,7 +103,15 @@ struct SettingsView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: 500)
+        .frame(width: 400, height: focus && !focusReadable ? 640 : 570)
+        .onAppear { focusReadable = focusAvailable() }
+        .onChange(of: focus) {
+            focusReadable = focusAvailable()
+            NotificationCenter.default.post(name: .focusPreferenceChanged, object: nil)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            focusReadable = focusAvailable()
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }

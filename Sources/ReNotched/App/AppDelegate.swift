@@ -1,0 +1,110 @@
+import AppKit
+import SwiftUI
+
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private let model = IslandModel()
+    private lazy var music = NowPlayingMonitor(model: model)
+    private lazy var panel = IslandPanelController(
+        model: model,
+        actions: MusicActions(playPause: { [weak self] in self?.music.playPause() },
+                              next: { [weak self] in self?.music.next() },
+                              previous: { [weak self] in self?.music.previous() },
+                              seek: { [weak self] in self?.music.seek(to: $0) }))
+    private let volume = VolumeMonitor()
+    private let clipboard = ClipboardMonitor()
+    private let power = PowerMonitor()
+    private let bluetooth = BluetoothMonitor()
+    private let focus = FocusMonitor()
+    private var settingsWindow: NSWindow?
+    private var termSource: DispatchSourceSignal?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        panel.start()
+        setupMenu()
+        showSettings()
+        connectMonitors()
+        music.start()
+        quitCleanlyOnSIGTERM()
+    }
+
+    /// Makes `kill` and logout stop the helper process too, instead of leaving it behind.
+    private func quitCleanlyOnSIGTERM() {
+        signal(SIGTERM, SIG_IGN)
+        let source = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
+        source.setEventHandler { NSApp.terminate(nil) }
+        source.resume()
+        termSource = source
+    }
+
+    func applicationWillTerminate(_ notification: Notification) { music.stop() }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        showSettings()
+        return true
+    }
+
+    // MARK: Monitors
+
+    /// Shows an event on the island unless the user switched that indicator off in the settings.
+    private func show(_ pref: String, _ event: Transient, for seconds: Double) {
+        if Pref.on(pref) { model.show(event, for: seconds) }
+    }
+
+    private func connectMonitors() {
+        volume.onChange = { [weak self] level, muted in self?.show(Pref.volume, .volume(level: level, muted: muted), for: 1.6) }
+        volume.onBluetoothOutput = { [weak self] name in self?.bluetooth.announce(name: name) }
+        volume.start()
+
+        clipboard.onCopy = { [weak self] preview, symbol in self?.show(Pref.copy, .copied(preview: preview, symbol: symbol), for: 2.2) }
+        clipboard.start()
+
+        power.onChange = { [weak self] percent, plugged in self?.show(Pref.power, .charging(percent: percent, plugged: plugged), for: 2.2) }
+        power.start()
+
+        bluetooth.onConnect = { [weak self] name, battery in self?.show(Pref.device, .device(name: name, battery: battery), for: 3) }
+        bluetooth.start()
+
+        var lastFocusName = "Focus"
+        focus.onChange = { [weak self] state in
+            if let state { lastFocusName = state.name }
+            self?.show(Pref.focus, .focus(name: state?.name ?? lastFocusName, symbol: state?.symbol ?? "moon.fill", on: state != nil), for: 2.6)
+        }
+        if Pref.on(Pref.focus) { focus.start() }
+        NotificationCenter.default.addObserver(forName: .focusPreferenceChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { Pref.on(Pref.focus) ? self?.focus.start() : self?.focus.stop() }
+        }
+    }
+
+    // MARK: Menu and settings window
+
+    private func setupMenu() {
+        let main = NSMenu()
+        let appItem = NSMenuItem()
+        main.addItem(appItem)
+        let menu = NSMenu()
+        menu.addItem(withTitle: NSLocalizedString("Settings…", comment: ""), action: #selector(showSettings), keyEquivalent: ",").target = self
+        menu.addItem(.separator())
+        menu.addItem(withTitle: NSLocalizedString("Hide ReNotched.", comment: ""), action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        menu.addItem(withTitle: NSLocalizedString("Quit ReNotched.", comment: ""), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appItem.submenu = menu
+        NSApp.mainMenu = main
+    }
+
+    @objc private func showSettings() {
+        if settingsWindow == nil {
+            let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(focusAvailable: { [focus] in focus.isAvailable })))
+            window.title = "ReNotched."
+            window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
+            window.toolbarStyle = .unified
+            window.isReleasedWhenClosed = false
+            window.center()
+            settingsWindow = window
+        }
+        NSApp.activate()
+        settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+}
