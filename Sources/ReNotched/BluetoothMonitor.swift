@@ -2,6 +2,7 @@ import Foundation
 import IOBluetooth
 
 /// Reports Bluetooth headphones connecting, including their battery level.
+/// Two signals feed it: IOBluetooth connect notifications and audio being routed to a Bluetooth output.
 final class BluetoothMonitor: NSObject {
     var onConnect: ((String, Int?) -> Void)?
     private var registration: IOBluetoothUserNotification?
@@ -12,17 +13,31 @@ final class BluetoothMonitor: NSObject {
     }
 
     @objc private func connected(_ note: IOBluetoothUserNotification, device: IOBluetoothDevice) {
-        guard device.deviceClassMajor == 4 else { return } // audio/video devices only (no mice, keyboards, …)
-        // The same device can report several connects (e.g. reconnecting by itself) → at most one animation per minute.
-        let address = device.addressString ?? ""
-        if let last = lastShown[address], Date().timeIntervalSince(last) < 60 { return }
-        let name = (device.name ?? NSLocalizedString("Headphones", comment: "")).replacingOccurrences(of: " (von|of) .*$", with: "", options: .regularExpression)
+        guard Self.isAudio(device) else { return }   // no mice, keyboards, …
+        announce(name: device.name ?? "", device: device)
+    }
+
+    /// Shows the animation for a connected audio device. At most once a minute per device.
+    func announce(name rawName: String, device: IOBluetoothDevice? = nil) {
+        let name = Self.clean(rawName)
+        if let last = lastShown[name], Date().timeIntervalSince(last) < 60 { return }
+        lastShown[name] = Date()
         // The battery level often arrives shortly after connecting → wait briefly.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-            guard let self, device.isConnected() else { return }   // ignore short-lived connections
-            self.lastShown[address] = Date()
-            self.onConnect?(name, Self.battery(of: device))
+            let paired = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
+            let d = device ?? paired.first { Self.clean($0.name ?? "") == name }
+            self?.onConnect?(name, d.flatMap(Self.battery))
         }
+    }
+
+    private static func clean(_ name: String) -> String {
+        let n = name.replacingOccurrences(of: " (von|of) .*$", with: "", options: .regularExpression)
+        return n.isEmpty ? NSLocalizedString("Headphones", comment: "") : n
+    }
+
+    /// Audio class, or an A2DP / hands-free / headset service (some headsets report no device class).
+    private static func isAudio(_ d: IOBluetoothDevice) -> Bool {
+        d.deviceClassMajor == 4 || [0x110B, 0x111E, 0x1108].contains { d.getServiceRecord(for: IOBluetoothSDPUUID(uuid16: BluetoothSDPUUID16($0))) != nil }
     }
 
     private static func battery(of d: IOBluetoothDevice) -> Int? {
@@ -31,5 +46,4 @@ final class BluetoothMonitor: NSObject {
         }
         return nil
     }
-
 }

@@ -34,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         showSettings()
 
         volume.onChange = { [weak self] level, muted in if Pref.on(Pref.volume) { self?.model.show(.volume(level: level, muted: muted), for: 1.6) } }
+        volume.onBluetoothOutput = { [weak self] name in self?.bluetooth.announce(name: name) }
         volume.start()
         clipboard.onCopy = { [weak self] preview, symbol in if Pref.on(Pref.copy) { self?.model.show(.copied(preview: preview, symbol: symbol), for: 2.2) } }
         clipboard.start()

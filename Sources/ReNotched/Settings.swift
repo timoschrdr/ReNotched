@@ -16,13 +16,18 @@ private extension View {
 private struct Row: View {
     let symbol: String, color: Color, title: LocalizedStringKey
     @Binding var isOn: Bool
+    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                .font(.system(size: 14, weight: .semibold))
+                // Like System Settings: coloured tile with white glyph in light mode, black tile with coloured glyph in dark mode
+                .foregroundStyle(scheme == .dark ? color : .white)
                 .frame(width: 30, height: 30)
-                .background(color.gradient, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .background(scheme == .dark ? AnyShapeStyle(Color.black) : AnyShapeStyle(color.gradient),
+                            in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(.white.opacity(scheme == .dark ? 0.12 : 0), lineWidth: 0.5))
             Text(title)
             Spacer()
             Toggle(title, isOn: $isOn).labelsHidden().toggleStyle(.switch)
@@ -66,7 +71,7 @@ struct SettingsView: View {
                 }
 
             HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.green)
+                Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.primary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Privacy").font(.subheadline.weight(.semibold))
                     Text("ReNotched. works entirely on your Mac. It collects, stores and sends no data and has no network access. Clipboard text, now-playing info and Bluetooth device names are only read to show them on the island and are never saved.")
