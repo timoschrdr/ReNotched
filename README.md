@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/icon.png" width="128" alt="ReNotched. app icon">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/icon-dark.png">
+    <img src="docs/icon-light.png" width="128" alt="ReNotched. app icon">
+  </picture>
 </p>
 
 # ReNotched.

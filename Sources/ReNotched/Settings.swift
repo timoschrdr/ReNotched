@@ -49,6 +49,7 @@ struct SettingsView: View {
             }
             .padding(.top, 12)
 
+            Text("Manage island animations").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
             VStack(spacing: 0) {
                 Row(symbol: "speaker.wave.2.fill", color: .blue, title: "Volume", isOn: $volume)
                 Row(symbol: "doc.on.doc.fill", color: .orange, title: "Copying", isOn: $copy)
@@ -64,10 +65,6 @@ struct SettingsView: View {
                     catch { login = SMAppService.mainApp.status == .enabled }
                 }
 
-            Text("Click the island to expand the music view, click anywhere else to close it.")
-                .font(.footnote).foregroundStyle(.secondary).padding(.horizontal, 6)
-                .fixedSize(horizontal: false, vertical: true)
-
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.green)
                 VStack(alignment: .leading, spacing: 2) {
@@ -80,7 +77,7 @@ struct SettingsView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: 530)
+        .frame(width: 400, height: 500)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }

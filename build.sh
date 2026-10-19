@@ -10,7 +10,8 @@ mkdir -p "$APP/Contents/MacOS"
 cp .build/release/ReNotched "$APP/Contents/MacOS/ReNotched"
 mkdir -p "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/Info.plist"
-cp Resources/AppIcon.icns "$APP/Contents/Resources/"
+xcrun actool Resources/AppIcon.icon --compile "$APP/Contents/Resources" --platform macosx \
+  --minimum-deployment-target 26.0 --app-icon AppIcon --output-partial-info-plist /dev/null > /dev/null
 cp -R Resources/de.lproj "$APP/Contents/Resources/"
 cp Vendor/mediaremote-adapter.pl "$APP/Contents/Resources/"
 cp -R Vendor/MediaRemoteAdapter.framework "$APP/Contents/Resources/"
