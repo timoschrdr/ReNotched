@@ -13,6 +13,10 @@ ReNotched. is deliberately simple. It sticks closely to Apple's design guideline
 
 The app is available in English and German and picks the language from your system settings.
 
+<p align="center">
+  <img src="docs/screenshot.png" width="720" alt="The island showing the player, volume, Focus, headphones, charger and copy animations over a neutral backdrop">
+</p>
+
 ## What it shows
 
 - **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys, AirPods and mute)
@@ -40,9 +44,17 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 
 ## Requirements
 
-- macOS 26 or later (the settings window uses Liquid Glass)
+- macOS 26 or later on Apple silicon (the settings window uses Liquid Glass)
 - Xcode 26 or later (or a matching Swift toolchain) to build it
 - A MacBook with a notch is recommended
+
+## Install
+
+1. Download `ReNotched-1.0.zip` from the [Releases](../../releases) page and unzip it.
+2. Move `ReNotched..app` to your Applications folder. The file name ends in a dot on purpose, so Finder and the Dock show "ReNotched."
+3. The app is signed locally (ad hoc) and not notarized by Apple, because that needs a paid developer account. The first start is therefore blocked: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/ReNotched..app` in Terminal. You only have to do this once.
+
+Release builds are for Apple silicon, which all MacBooks with a notch use.
 
 ## Build and run
 
@@ -88,7 +100,7 @@ ReNotched. does not collect, store or send any personal data. It has no accounts
 
 - ReNotched. is an independent project. It is **not affiliated with, authorised or endorsed by Apple Inc.** Apple, MacBook, macOS, Dynamic Island and SF Symbols are trademarks of Apple Inc.
 - The software is provided **as is, without warranty of any kind** (see [LICENSE](LICENSE)). Use it at your own risk.
-- Fullscreen detection uses a private CoreGraphics call, and now-playing information uses the private MediaRemote interface through the bundled [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3-Clause, © Jonas van den Berg and contributors, see `Vendor/MediaRemoteAdapter.LICENSE`). Private interfaces can change or stop working with any macOS update, and apps that use them cannot be distributed through the Mac App Store.
+- Fullscreen detection uses a private CoreGraphics call, and now-playing information uses the private MediaRemote interface through the bundled [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3-Clause, © Jonas van den Berg and contributors, see `Vendor/MediaRemoteAdapter.LICENSE`; the pinned source and how to rebuild the binary are described in `Vendor/README.md`). Private interfaces can change or stop working with any macOS update, and apps that use them cannot be distributed through the Mac App Store.
 - SF Symbols are used as permitted by Apple's SF Symbols license for apps running on Apple platforms.
 
 ## License
