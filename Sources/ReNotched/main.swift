@@ -73,7 +73,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.level = NSWindow.Level(rawValue: NSWindow.Level.mainMenu.rawValue + 3)
-        panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
+        // On every normal space, but deliberately not on fullscreen spaces (no .fullScreenAuxiliary): the island
+        // leaves together with the desktop when an app enters fullscreen instead of lingering over it.
+        panel.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle]
         panel.ignoresMouseEvents = true
         panel.isMovable = false
 
@@ -112,23 +114,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return Spaces.isFullscreen(display: id)
     }
 
-    /// Collapses the island while a fullscreen app is shown, and brings it back afterwards.
+    /// Hides the island while a fullscreen app is shown, and brings it back afterwards.
     private func updateFullscreen() {
         let full = fullscreenOnBuiltIn()
         model.setHidden(full)
         if full {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
-                guard let self, self.model.hidden else { return }
-                self.panel.orderOut(nil)   // after the collapse animation
-            }
-        } else if builtInScreen != nil {
+            panel.orderOut(nil)   // immediately: the panel would otherwise linger over the fullscreen space
+        } else if builtInScreen != nil, !panel.isVisible {
             panel.orderFrontRegardless()
         }
     }
 
     /// Spaces and fullscreen transitions settle a moment after their notifications → check again shortly after.
     private func scheduleFullscreenCheck() {
-        for delay in [0.1, 0.6, 1.4] {
+        for delay in [0, 0.15, 0.6, 1.4] {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.updateFullscreen() }
         }
     }
