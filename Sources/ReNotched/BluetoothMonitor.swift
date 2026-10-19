@@ -5,17 +5,23 @@ import IOBluetooth
 final class BluetoothMonitor: NSObject {
     var onConnect: ((String, Int?) -> Void)?
     private var registration: IOBluetoothUserNotification?
+    private var lastShown: [String: Date] = [:]
 
     func start() {
         registration = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(connected(_:device:)))
     }
 
     @objc private func connected(_ note: IOBluetoothUserNotification, device: IOBluetoothDevice) {
-        guard device.deviceClassMajor == 4 || device.deviceClassMajor == 0 else { return } // audio
+        guard device.deviceClassMajor == 4 else { return } // audio/video devices only (no mice, keyboards, …)
+        // The same device can report several connects (e.g. reconnecting by itself) → at most one animation per minute.
+        let address = device.addressString ?? ""
+        if let last = lastShown[address], Date().timeIntervalSince(last) < 60 { return }
         let name = (device.name ?? NSLocalizedString("Headphones", comment: "")).replacingOccurrences(of: " (von|of) .*$", with: "", options: .regularExpression)
         // The battery level often arrives shortly after connecting → wait briefly.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
-            self?.onConnect?(name, Self.battery(of: device))
+            guard let self, device.isConnected() else { return }   // ignore short-lived connections
+            self.lastShown[address] = Date()
+            self.onConnect?(name, Self.battery(of: device))
         }
     }
 

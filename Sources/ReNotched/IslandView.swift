@@ -97,14 +97,14 @@ private struct VolumeContent: View {
             Image(systemName: muted ? "speaker.slash.fill" : "speaker.wave.3.fill",
                   variableValue: Double(shown))
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(muted ? Color.red : .white)   // muted: red slashed speaker, like on the iPhone
                 .contentTransition(.symbolEffect(.replace))
                 .symbolEffect(.bounce, value: muted)
         } right: {
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.25))
                 Capsule().fill(.white)
-                    .frame(width: max(5, 42 * CGFloat(shown)))
+                    .frame(width: 42 * CGFloat(shown))
             }
             .frame(width: 42, height: 5)
             .animation(.smooth(duration: 0.18), value: shown)
@@ -145,7 +145,6 @@ private struct DeviceContent: View {
             return ("", nil)
         }()
         let level = Double(battery ?? 0) / 100
-        let color: Color = level <= 0.2 ? .red : .green
 
         VStack(spacing: 0) {
             SideLayout(notchWidth: model.notch.width, height: model.notch.height) {
@@ -157,8 +156,7 @@ private struct DeviceContent: View {
                 if let battery {
                     HStack(spacing: 5) {
                         Text("\(battery)%").font(.system(size: 12, weight: .semibold).monospacedDigit()).foregroundStyle(.white)
-                        Image(systemName: "battery.100percent", variableValue: level)
-                            .font(.system(size: 15)).foregroundStyle(color)
+                        BatteryIcon(level: appeared ? level : 0)
                     }
                 } else {
                     Image(systemName: "checkmark.circle.fill").font(.system(size: 15)).foregroundStyle(.green)
@@ -169,7 +167,7 @@ private struct DeviceContent: View {
                 Capsule().fill(.white.opacity(0.2)).frame(height: 4)
                     .overlay(alignment: .leading) {
                         GeometryReader { g in
-                            Capsule().fill(battery == nil ? Color.green : color)
+                            Capsule().fill(.white)
                                 .frame(width: g.size.width * (appeared ? (battery == nil ? 1 : level) : 0))
                         }
                     }
@@ -178,6 +176,25 @@ private struct DeviceContent: View {
             .frame(height: 38)
         }
         .onAppear { withAnimation(.spring(response: 0.8, dampingFraction: 0.8).delay(0.15)) { appeared = true } }
+    }
+}
+
+/// White battery whose fill matches the actual charge.
+private struct BatteryIcon: View {
+    let level: Double
+
+    var body: some View {
+        HStack(spacing: 1.5) {
+            ZStack(alignment: .leading) {
+                RoundedRectangle(cornerRadius: 4, style: .continuous).strokeBorder(.white.opacity(0.45), lineWidth: 1.2)
+                RoundedRectangle(cornerRadius: 2.2, style: .continuous).fill(.white)
+                    .frame(width: max(0, 18 * level), height: 7)
+                    .padding(.leading, 2.4)
+            }
+            .frame(width: 24, height: 11)
+            Capsule().fill(.white.opacity(0.45)).frame(width: 1.8, height: 4)
+        }
+        .animation(.spring(response: 0.8, dampingFraction: 0.8), value: level)
     }
 }
 

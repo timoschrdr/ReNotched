@@ -132,14 +132,16 @@ final class NowPlayingMonitor {
 
     private func apply(_ u: StreamDecoder.Update) {
         guard var t = u.track else {
-            // On track changes the adapter briefly reports nothing → only clear the track after a pause.
+            // Some players report nothing when paused, and all do so briefly between tracks → treat as paused after 1.5 s and drop the track only after 30 s.
             if model.track != nil, clearTask == nil {
                 clearTask = Task { [weak self] in
                     try? await Task.sleep(for: .milliseconds(1500))
                     guard !Task.isCancelled, let self else { return }
+                    self.model.isPlaying = false   // treated as paused: cover shrinks
+                    try? await Task.sleep(for: .seconds(30))
+                    guard !Task.isCancelled else { return }
                     self.clearTask = nil
                     self.model.track = nil
-                    self.model.isPlaying = false
                 }
             }
             return
