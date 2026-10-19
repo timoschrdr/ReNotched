@@ -37,7 +37,11 @@ final class IslandModel: ObservableObject {
 
     private var transientTask: Task<Void, Never>?
 
+    /// True while a fullscreen app covers the built-in display: the island collapses and stays away.
+    @Published private(set) var hidden = false
+
     var mode: IslandMode {
+        if hidden { return .idle }
         if let transient {
             switch transient {
             case .volume: return .volume
@@ -67,7 +71,14 @@ final class IslandModel: ObservableObject {
 
     // MARK: Transient events
 
+    func setHidden(_ value: Bool) {
+        guard hidden != value else { return }
+        hidden = value
+        if value { transient = nil; transientTask?.cancel(); expanded = false }
+    }
+
     func show(_ value: Transient, for seconds: Double = 1.8) {
+        guard !hidden else { return }
         transient = value
         transientTask?.cancel()
         transientTask = Task { [weak self] in

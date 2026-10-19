@@ -21,6 +21,8 @@ The app is available in English and German and picks the language from your syst
 - **Headphones** – connecting Bluetooth headphones shows their name and, if the device reports it, the battery level
 - **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer and progress bar use the colour of the album cover and a new cover animates in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
 
+The island appears on the built-in display only, never on external monitors, and it collapses and stays away while an app is in fullscreen.
+
 Each indicator can be switched off in the app's settings window, which is also where you quit the app and enable **Launch at login**.
 
 ## How it works
@@ -31,6 +33,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 - **Copying** is detected by watching the pasteboard change counter a few times per second.
 - **Charger** uses IOKit power-source notifications, so there is no polling.
 - **Headphones** use IOBluetooth connect notifications.
+- **Fullscreen** is detected with a read-only query of the active space type of the built-in display (a private CoreGraphics call that is only used for this check).
 - **Now playing** is read with the third-party [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because Apple restricted the private MediaRemote interface for regular apps in macOS 15.4. It runs as one long-lived helper process that only reports changes.
 
 ## Requirements
@@ -68,7 +71,7 @@ ReNotched. does not collect, store or send any personal data. It has no accounts
 
 - ReNotched. is an independent project. It is **not affiliated with, authorised or endorsed by Apple Inc.** Apple, MacBook, macOS, Dynamic Island and SF Symbols are trademarks of Apple Inc.
 - The software is provided **as is, without warranty of any kind** (see [LICENSE](LICENSE)). Use it at your own risk.
-- Now-playing information uses a private macOS interface through the bundled [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3-Clause, © Jonas van den Berg and contributors, see `Vendor/MediaRemoteAdapter.LICENSE`). Private interfaces can change or stop working with any macOS update, and apps that use them cannot be distributed through the Mac App Store.
+- Fullscreen detection uses a private CoreGraphics call, and now-playing information uses the private MediaRemote interface through the bundled [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter) (BSD-3-Clause, © Jonas van den Berg and contributors, see `Vendor/MediaRemoteAdapter.LICENSE`). Private interfaces can change or stop working with any macOS update, and apps that use them cannot be distributed through the Mac App Store.
 - SF Symbols are used as permitted by Apple's SF Symbols license for apps running on Apple platforms.
 
 ## License

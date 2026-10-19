@@ -49,6 +49,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { self?.reposition() }
         }
 
+        let ws = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.activeSpaceDidChangeNotification, NSWorkspace.didActivateApplicationNotification] {
+            ws.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.scheduleFullscreenCheck() }
+            }
+        }
+
         let handler: (NSEvent) -> Void = { [weak self] _ in MainActor.assumeIsolated { self?.clicked() } }
         if let g = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown, handler: handler) { monitors.append(g) }
         if let l = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown, handler: { e in handler(e); return e }) { monitors.append(l) }
@@ -77,12 +84,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.orderFrontRegardless()
     }
 
-    private var notchScreen: NSScreen? {
-        NSScreen.screens.first { $0.safeAreaInsets.top > 0 } ?? NSScreen.main
+    /// The island lives on the built-in display only, never on external monitors.
+    private var builtInScreen: NSScreen? {
+        NSScreen.screens.first { s in
+            guard let id = s.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else { return false }
+            return CGDisplayIsBuiltin(id) != 0
+        }
     }
 
     private func reposition() {
-        guard let screen = notchScreen else { return }
+        guard let screen = builtInScreen else { panel.orderOut(nil); return }   // e.g. lid closed
+        if !model.hidden { panel.orderFrontRegardless() }
         var size = CGSize(width: 190, height: 32) // fallback without a notch
         if screen.safeAreaInsets.top > 0,
            let l = screen.auxiliaryTopLeftArea, let r = screen.auxiliaryTopRightArea {
@@ -92,6 +104,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let f = screen.frame
         panel.setFrame(NSRect(x: f.midX - panelSize.width / 2, y: f.maxY - panelSize.height,
                               width: panelSize.width, height: panelSize.height), display: true)
+    }
+
+    /// True while a fullscreen space is active on the built-in display.
+    private func fullscreenOnBuiltIn() -> Bool {
+        guard let id = builtInScreen?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else { return false }
+        return Spaces.isFullscreen(display: id)
+    }
+
+    /// Collapses the island while a fullscreen app is shown, and brings it back afterwards.
+    private func updateFullscreen() {
+        let full = fullscreenOnBuiltIn()
+        model.setHidden(full)
+        if full {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+                guard let self, self.model.hidden else { return }
+                self.panel.orderOut(nil)   // after the collapse animation
+            }
+        } else if builtInScreen != nil {
+            panel.orderFrontRegardless()
+        }
+    }
+
+    /// Spaces and fullscreen transitions settle a moment after their notifications → check again shortly after.
+    private func scheduleFullscreenCheck() {
+        for delay in [0.1, 0.6, 1.4] {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in self?.updateFullscreen() }
+        }
     }
 
     /// Clicking the compact island expands it; clicking elsewhere collapses it again.
