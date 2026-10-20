@@ -44,7 +44,7 @@ struct ExpandedMusicContent: View {
             }
         }
         .padding(.horizontal, 22)
-        .padding(.top, model.notch.height + 2)
+        .padding(.top, model.notch.height + model.notchExtra + 1)
         .padding(.bottom, 14)
     }
 }

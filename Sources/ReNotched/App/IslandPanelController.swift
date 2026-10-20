@@ -80,6 +80,9 @@ final class IslandPanelController {
             size = CGSize(width: screen.frame.width - left.width - right.width, height: screen.safeAreaInsets.top)
         }
         model.notch = size
+        // The menu bar is as tall as the notch's lower edge; use it (within sane limits) to size the active island.
+        let menuBar = screen.frame.maxY - screen.visibleFrame.maxY
+        model.notchExtra = (menuBar > size.height && menuBar - size.height <= 4) ? menuBar - size.height : 1
         let f = screen.frame
         panel.setFrame(NSRect(x: f.midX - panelSize.width / 2, y: f.maxY - panelSize.height,
                               width: panelSize.width, height: panelSize.height), display: true)

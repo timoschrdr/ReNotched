@@ -17,6 +17,9 @@ enum IslandMode: Equatable {
 @MainActor
 final class IslandModel: ObservableObject {
     @Published var notch = CGSize(width: 185, height: 32)
+    /// How far an active island reaches below the notch's safe-area height. The panel sets it to the menu bar
+    /// height, so the island ends exactly where windows begin on every MacBook and display scaling.
+    var notchExtra: CGFloat = 1
     @Published private(set) var transient: Transient? { didSet { refreshMode() } }
     @Published var track: Track? { didSet { updateDormancy(); refreshMode() } }
     @Published var isPlaying = false { didSet { updateDormancy() } }
@@ -36,8 +39,8 @@ final class IslandModel: ObservableObject {
     var currentSize: CGSize { size(for: mode) }
 
     func size(for mode: IslandMode) -> CGSize {
-        // The physical notch extends slightly below the safe-area inset → an active island is 2 pt taller.
-        let w = notch.width, h = notch.height + (mode == .idle ? 0 : 2)
+        // The physical notch reaches down to the menu bar's lower edge, slightly below the safe-area inset.
+        let w = notch.width, h = notch.height + (mode == .idle ? 0 : notchExtra)
         switch mode {
         case .idle: return CGSize(width: w, height: h)
         case .volume: return CGSize(width: w + 2 * 76, height: h)
