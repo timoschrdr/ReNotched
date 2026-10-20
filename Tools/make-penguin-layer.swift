@@ -1,7 +1,6 @@
 // Generates the default app icon. Turns Tools/penguin-source.png (the penguin icon artwork, on a cream rounded-square background) into the
 // transparent layer of the native icon: swift Tools/make-penguin-layer.swift
 //  - Resources/AppIcon.icon/Assets/penguin.png: the penguin only, filling the 1024 × 1024 canvas
-//  - docs/icon-light.png and docs/icon-dark.png: previews for the README
 // The background is removed with a flood fill from the outside; the cream face and belly stay because they are
 // enclosed by the blue body. Edge pixels get a soft alpha, so there is no cream halo.
 import AppKit
@@ -99,6 +98,4 @@ func write(_ r: NSBitmapImageRep, _ path: String) { try! r.representation(using:
 
 try? FileManager.default.createDirectory(atPath: "Resources/AppIcon.icon/Assets", withIntermediateDirectories: true)
 write(draw(1024, background: nil, rounded: false), "Resources/AppIcon.icon/Assets/penguin.png")
-write(draw(256, background: NSColor(srgbRed: 0.992, green: 0.969, blue: 0.941, alpha: 1), rounded: true), "docs/icon-light.png")
-write(draw(256, background: NSColor(srgbRed: 0.090, green: 0.086, blue: 0.110, alpha: 1), rounded: true), "docs/icon-dark.png")
 print("done")

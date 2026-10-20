@@ -1,7 +1,6 @@
 // Generates the artwork of the alternative island icon: swift Tools/make-icon.swift
 //  - Resources/AppIconIsland.icon/Assets/island.png: foreground layer of the native macOS 26 icon (background and
 //    light/dark variants are defined in Resources/AppIconIsland.icon/icon.json, compiled by build.sh with ICON=island)
-//  - docs/icon-island-light.png and docs/icon-island-dark.png for the README
 //  - Resources/IslandIcon-light.png and IslandIcon-dark.png: Dock-ready icons that the app sets at runtime when this
 //    icon is chosen in the settings
 import AppKit
@@ -63,13 +62,11 @@ func png(_ image: NSImage, px: Int) -> Data {
     return out.representation(using: .png, properties: [:])!
 }
 let light = render(dark: false), dark = render(dark: true)
-try? FileManager.default.createDirectory(atPath: "docs", withIntermediateDirectories: true)
-try! png(light, px: 256).write(to: URL(filePath: "docs/icon-island-light.png"))
-try! png(dark, px: 256).write(to: URL(filePath: "docs/icon-island-dark.png"))
 // Layer for the native macOS 26 icon (Icon Composer format): the system adds background and light/dark variants.
 try? FileManager.default.createDirectory(atPath: "Resources/AppIconIsland.icon/Assets", withIntermediateDirectories: true)
 try! png(render(dark: false, foregroundOnly: true), px: 1024).write(to: URL(filePath: "Resources/AppIconIsland.icon/Assets/island.png"))
 
+// (The README images with the Liquid Glass look come from Tools/make-icon-previews.sh.)
 // Dock-ready icons: the rounded square from the render (824 pt with margin) plus a soft shadow, 512 px
 for (name, image) in [("light", light), ("dark", dark)] {
     let size = 512

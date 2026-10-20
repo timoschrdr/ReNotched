@@ -102,7 +102,7 @@ The default icon is a waving penguin. An alternative icon with the notch and a s
   </picture>
 </p>
 
-Both icons follow the system's light and dark appearance. The penguin illustration was generated with an AI image tool (ChatGPT). The artwork comes from `Tools/penguin-source.png`, which `swift Tools/make-penguin-layer.swift` cuts out and places on the icon canvas, and from `swift Tools/make-icon.swift` for the alternative.
+Both icons follow the system's light and dark appearance. The penguin illustration was generated with an AI image tool (ChatGPT). The artwork comes from `Tools/penguin-source.png`, which `swift Tools/make-penguin-layer.swift` cuts out and places on the icon canvas, and from `swift Tools/make-icon.swift` for the alternative. The README images with the Liquid Glass look come from `Tools/make-icon-previews.sh` (Icon Composer's `ictool`), the social preview from `swift Tools/make-social-preview.swift`.
 
 ## Privacy
 
