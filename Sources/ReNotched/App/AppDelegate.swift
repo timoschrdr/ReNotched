@@ -1,4 +1,5 @@
 import AppKit
+import ServiceManagement
 import SwiftUI
 
 @MainActor
@@ -22,7 +23,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         panel.start()
         setupMenu()
-        showSettings()
+        // Started by "Launch at login": stay in the background instead of opening the settings.
+        if SMAppService.mainApp.status == .enabled && ProcessInfo.processInfo.systemUptime < 180 {
+            NSApp.setActivationPolicy(.accessory)
+        } else {
+            showSettings()
+        }
         connectMonitors()
         music.start()
         quitCleanlyOnSIGTERM()
@@ -92,7 +98,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = main
     }
 
+    /// Opening the app again (Finder, Spotlight, Dock) brings the settings window back, with its power button.
     @objc private func showSettings() {
+        NSApp.setActivationPolicy(.regular)   // Dock icon and menu bar while the window is open
         if settingsWindow == nil {
             let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(focusAvailable: { [focus] in focus.isAvailable })))
             window.title = "ReNotched."
@@ -102,6 +110,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             window.toolbarStyle = .unified
             window.isReleasedWhenClosed = false
             window.center()
+            // Closing the window leaves the app running in the background without a Dock icon.
+            NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { _ in
+                _ = MainActor.assumeIsolated { NSApp.setActivationPolicy(.accessory) }
+            }
             settingsWindow = window
         }
         NSApp.activate()

@@ -44,13 +44,18 @@ private struct Row: View {
 struct SettingsView: View {
     /// Whether the Focus database can be read (Full Disk Access granted).
     let focusAvailable: () -> Bool
-    @State private var focusReadable = true
+    @State private var focusReadable: Bool
     @AppStorage(Pref.focus) private var focus = false
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
     @AppStorage(Pref.power) private var power = true
     @AppStorage(Pref.device) private var device = true
     @State private var login = SMAppService.mainApp.status == .enabled
+
+    init(focusAvailable: @escaping () -> Bool) {
+        self.focusAvailable = focusAvailable
+        _focusReadable = State(initialValue: focusAvailable())
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -91,6 +96,8 @@ struct SettingsView: View {
                     catch { login = SMAppService.mainApp.status == .enabled }
                 }
 
+            Spacer(minLength: 0)
+
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.primary)
                 VStack(alignment: .leading, spacing: 2) {
@@ -100,10 +107,9 @@ struct SettingsView: View {
                 }
             }
             .padding(14).card()
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: focus && !focusReadable ? 640 : 570)
+        .frame(width: 400, height: 640)   // fixed: the window must not change size once it is open
         .onAppear { focusReadable = focusAvailable() }
         .onChange(of: focus) {
             focusReadable = focusAvailable()

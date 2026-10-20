@@ -29,15 +29,12 @@ struct IslandView: View {
         let mode = model.mode
         let size = model.size(for: mode)
         let expanded = [.copied, .device, .musicExpanded].contains(mode)
-        let shape = UnevenRoundedRectangle(
-            topLeadingRadius: 0,
-            bottomLeadingRadius: expanded ? 30 : 15,
-            bottomTrailingRadius: expanded ? 30 : 15,
-            topTrailingRadius: 0,
-            style: .continuous)
+        let radius: CGFloat = expanded ? 30 : 15
+        let body = UnevenRoundedRectangle(bottomLeadingRadius: radius, bottomTrailingRadius: radius, style: .continuous)
+        // Resting on the physical notch, nothing is drawn beyond it; once active the island gets the notch's top "ears".
+        let ear: CGFloat = mode == .idle ? 0 : 6
 
         ZStack(alignment: .top) {
-            Color.black
             content(for: mode)
                 .id(mode)
                 .transition(.asymmetric(
@@ -45,7 +42,8 @@ struct IslandView: View {
                     removal: .opacity))
         }
         .frame(width: size.width, height: size.height, alignment: .top)
-        .clipShape(shape)
+        .clipShape(body)
+        .background(alignment: .top) { IslandShape(bottomRadius: radius, ear: ear).fill(.black) }
         .animation(animation(for: mode), value: mode)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .ignoresSafeArea()

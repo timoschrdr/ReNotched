@@ -82,7 +82,7 @@ Resources/                   app icon (Icon Composer format) and German strings
 
 ## Usage
 
-1. Open the app once. Its settings window lets you choose which indicators you want.
+1. Open the app once. Its settings window lets you choose which indicators you want. Closing that window leaves the app running in the background without a Dock icon. To open the settings again (or to quit with the power button in the window), open the app a second time from Finder or Spotlight.
 2. macOS asks for **Bluetooth** access. This is only used to notice when headphones connect. Without it, the headphone indicator stays off.
 3. Play music, change the volume or copy something – the island reacts on its own. Click the island while music is playing to open the player.
 
