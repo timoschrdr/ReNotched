@@ -64,17 +64,9 @@ final class IslandPanelController {
 
     // MARK: Placement
 
-    /// The island lives on the built-in display only, never on external monitors.
-    private var builtIn: (screen: NSScreen, id: CGDirectDisplayID)? {
-        for screen in NSScreen.screens {
-            if let id = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID,
-               CGDisplayIsBuiltin(id) != 0 { return (screen, id) }
-        }
-        return nil
-    }
-
     private func reposition() {
-        guard let screen = builtIn?.screen else { panel.orderOut(nil); return }   // e.g. lid closed
+        // The island lives on the built-in display only, never on external monitors.
+        guard let screen = NSScreen.builtIn else { panel.orderOut(nil); return }   // e.g. lid closed
         var size = CGSize(width: 190, height: 32)   // fallback for screens without a notch
         if screen.safeAreaInsets.top > 0, let left = screen.auxiliaryTopLeftArea, let right = screen.auxiliaryTopRightArea {
             size = CGSize(width: screen.frame.width - left.width - right.width, height: screen.safeAreaInsets.top)
@@ -92,13 +84,13 @@ final class IslandPanelController {
     // MARK: Spaces
 
     private var isFullscreen: Bool {
-        guard let id = builtIn?.id else { return false }
+        guard let id = NSScreen.builtIn?.displayID else { return false }
         return Spaces.isFullscreen(display: id)
     }
 
     /// Brings the island to the current desktop, but never into a fullscreen space.
     private func moveToActiveDesktop() {
-        if builtIn != nil, !isFullscreen { panel.orderFrontRegardless() }
+        if NSScreen.builtIn != nil, !isFullscreen { panel.orderFrontRegardless() }
     }
 
     /// The fullscreen state of a new space can lag behind the notification, so poll briefly and move the

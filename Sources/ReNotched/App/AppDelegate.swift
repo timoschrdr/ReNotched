@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let power = PowerMonitor()
     private let bluetooth = BluetoothMonitor()
     private let focus = FocusMonitor()
+    private let systemHUD = SystemHUDBlocker()
     private var settingsWindow: NSWindow?
     private var termSource: DispatchSourceSignal?
 
@@ -43,7 +44,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         termSource = source
     }
 
-    func applicationWillTerminate(_ notification: Notification) { music.stop() }
+    func applicationWillTerminate(_ notification: Notification) {
+        music.stop()
+        systemHUD.releaseAll()
+    }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -78,6 +82,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.show(Pref.focus, .focus(symbol: lastFocus.symbol, tint: lastFocus.tint, on: state != nil), for: 2.4)
         }
         if Pref.on(Pref.focus) { focus.start() }
+
+        systemHUD.setEnabled(Pref.on(Pref.hideSystemHUD))
+        NotificationCenter.default.addObserver(forName: .hideSystemHUDPreferenceChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.systemHUD.setEnabled(Pref.on(Pref.hideSystemHUD)) }
+        }
+        NotificationCenter.default.addObserver(forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.systemHUD.refresh() }
+        }
         NotificationCenter.default.addObserver(forName: .focusPreferenceChanged, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { Pref.on(Pref.focus) ? self?.focus.start() : self?.focus.stop() }
         }

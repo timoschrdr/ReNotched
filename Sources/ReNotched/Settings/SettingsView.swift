@@ -3,12 +3,14 @@ import SwiftUI
 
 enum Pref {
     static let volume = "showVolume", copy = "showCopy", power = "showPower", device = "showDevice", focus = "showFocus"
-    /// Every indicator is on by default, except Focus, which needs Full Disk Access.
-    static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? (key != focus) }
+    static let hideSystemHUD = "hideSystemVolumeHUD"
+    /// Everything is on by default, except Focus (needs Full Disk Access) and hiding the macOS volume overlay.
+    static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? (key != focus && key != hideSystemHUD) }
 }
 
 extension Notification.Name {
     static let focusPreferenceChanged = Notification.Name("ReNotched.focusPreferenceChanged")
+    static let hideSystemHUDPreferenceChanged = Notification.Name("ReNotched.hideSystemHUDPreferenceChanged")
 }
 
 private extension View {
@@ -53,6 +55,7 @@ struct SettingsView: View {
     let focusAvailable: () -> Bool
     @State private var focusReadable: Bool
     @AppStorage(Pref.focus) private var focus = false
+    @AppStorage(Pref.hideSystemHUD) private var hideSystemHUD = false
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
     @AppStorage(Pref.power) private var power = true
@@ -89,12 +92,19 @@ struct SettingsView: View {
             }
             .padding(.vertical, 4).card()
 
-            Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
-                .card()
-                .onChange(of: login) { _, on in
-                    do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
-                    catch { login = SMAppService.mainApp.status == .enabled }
-                }
+            VStack(spacing: 0) {
+                Row(symbol: "speaker.slash.fill", color: .red, title: "Hide macOS volume overlay",
+                    subtitle: "Only the island shows the volume", isOn: $hideSystemHUD)
+                Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
+            }
+            .padding(.vertical, 4).card()
+            .onChange(of: login) { _, on in
+                do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
+                catch { login = SMAppService.mainApp.status == .enabled }
+            }
+            .onChange(of: hideSystemHUD) {
+                NotificationCenter.default.post(name: .hideSystemHUDPreferenceChanged, object: nil)
+            }
 
             Spacer(minLength: 0)
 
@@ -109,7 +119,7 @@ struct SettingsView: View {
             .padding(14).card()
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: 550)   // fixed: the window must not change size once it is open
+        .frame(width: 400, height: 604)   // fixed: the window must not change size once it is open
         .onAppear { focusReadable = focusAvailable() }
         .onChange(of: focus) {
             focusReadable = focusAvailable()

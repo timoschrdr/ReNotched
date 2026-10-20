@@ -21,3 +21,5 @@
 "Off" = "Aus";
 "Needs Full Disk Access" = "Braucht Vollzugriff auf die Festplatte";
 "Open" = "Öffnen";
+"Hide macOS volume overlay" = "macOS-Lautstärkeanzeige ausblenden";
+"Only the island shows the volume" = "Nur die Insel zeigt die Lautstärke";
