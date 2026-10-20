@@ -20,6 +20,9 @@ private extension View {
 
 private struct Row: View {
     let symbol: String, color: Color, title: LocalizedStringKey
+    var subtitle: LocalizedStringKey? = nil
+    var actionTitle: LocalizedStringKey? = nil
+    var action: (() -> Void)? = nil
     @Binding var isOn: Bool
     @Environment(\.colorScheme) private var scheme
 
@@ -33,8 +36,12 @@ private struct Row: View {
                 .background(scheme == .dark ? AnyShapeStyle(Color.black) : AnyShapeStyle(color.gradient),
                             in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(.white.opacity(scheme == .dark ? 0.12 : 0), lineWidth: 0.5))
-            Text(title)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title)
+                if let subtitle { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
+            }
             Spacer()
+            if let actionTitle, let action { Button(actionTitle, action: action).buttonStyle(.glass).controlSize(.small) }
             Toggle(title, isOn: $isOn).labelsHidden().toggleStyle(.switch)
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
@@ -74,20 +81,13 @@ struct SettingsView: View {
                 Row(symbol: "doc.on.doc.fill", color: .orange, title: "Copying", isOn: $copy)
                 Row(symbol: "bolt.fill", color: .green, title: "Charger", isOn: $power)
                 Row(symbol: "headphones", color: .purple, title: "Headphones connected", isOn: $device)
-                Row(symbol: "moon.fill", color: .indigo, title: "Focus", isOn: $focus)
+                // The caption is always there, so the layout never changes when access is granted or missing.
+                Row(symbol: "moon.fill", color: .indigo, title: "Focus", subtitle: "Needs Full Disk Access",
+                    actionTitle: focus && !focusReadable ? "Open" : nil,
+                    action: { NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) },
+                    isOn: $focus)
             }
             .padding(.vertical, 4).card()
-
-            if focus && !focusReadable {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text("Focus needs Full Disk Access. Allow ReNotched. in System Settings, then reopen the app.")
-                        .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    Button("Open") {
-                        NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
-                    }.buttonStyle(.glass).controlSize(.small)
-                }
-                .padding(.horizontal, 6)
-            }
 
             Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
                 .card()
@@ -109,7 +109,7 @@ struct SettingsView: View {
             .padding(14).card()
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: 640)   // fixed: the window must not change size once it is open
+        .frame(width: 400, height: 550)   // fixed: the window must not change size once it is open
         .onAppear { focusReadable = focusAvailable() }
         .onChange(of: focus) {
             focusReadable = focusAvailable()

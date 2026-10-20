@@ -19,5 +19,5 @@
 "Focus" = "Fokus";
 "On" = "An";
 "Off" = "Aus";
-"Focus needs Full Disk Access. Allow ReNotched. in System Settings, then reopen the app." = "Fokus braucht den Vollzugriff auf die Festplatte. Erlaube ReNotched. in den Systemeinstellungen und öffne die App danach neu.";
+"Needs Full Disk Access" = "Braucht Vollzugriff auf die Festplatte";
 "Open" = "Öffnen";

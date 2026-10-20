@@ -35,7 +35,7 @@ Each indicator can be switched off in the app's settings window, which is also w
 ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through panel on top of the notch. It reads the notch size from the screen, so the island always lines up with it. Without a notch it appears at the top centre of the screen.
 
 - **Volume** is observed through Core Audio property listeners.
-- **Copying** is detected by watching the pasteboard change counter a few times per second.
+- **Copying** is detected by watching the pasteboard change counter twice a second (macOS has no notification for it).
 - **Charger** uses IOKit power-source notifications, so there is no polling.
 - **Headphones** use IOBluetooth connect notifications.
 - **Focus** reads the Focus database in `~/Library/DoNotDisturb/DB` (read-only, change-triggered), which only works once you grant the app Full Disk Access in System Settings.
