@@ -32,6 +32,5 @@ Not in scope:
 ## How the app is built
 
 - The helper process is started with a fixed argument list and **without a shell**, and only from inside the app bundle, so input cannot be turned into commands.
-- The optional "hide macOS volume overlay" only sends SIGSTOP and SIGKILL to the system helper `OSDUIHelper` of the same user, found by its bundle identifier. No shell, no permissions.
 - The helper's output is parsed as JSON with a size limit on the read buffer.
 - The app makes no network connections and has no third-party Swift dependencies. The only bundled third-party component is the mediaremote-adapter.

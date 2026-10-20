@@ -1,7 +1,7 @@
 "Volume" = "Lautstärke";
 "Copying" = "Kopieren";
 "Charger" = "Ladekabel";
-"Headphones connected" = "Kopfhörer verbunden";
+"Headphones" = "Kopfhörer";
 "Launch at login" = "Beim Anmelden starten";
 "Your notch as a Dynamic Island" = "Deine Notch als Dynamic Island";
 "Manage island animations" = "Island-Animationen verwalten";
@@ -15,11 +15,12 @@
 "Image" = "Bild";
 "Content" = "Inhalt";
 "Confidential content" = "Vertraulicher Inhalt";
-"Headphones" = "Kopfhörer";
 "Focus" = "Fokus";
 "On" = "An";
 "Off" = "Aus";
 "Needs Full Disk Access" = "Braucht Vollzugriff auf die Festplatte";
 "Open" = "Öffnen";
-"Hide macOS volume overlay" = "macOS-Lautstärkeanzeige ausblenden";
-"Only the island shows the volume" = "Nur die Insel zeigt die Lautstärke";
+"Level and mute when you change it" = "Pegel und Stumm beim Ändern";
+"A preview of what you copy" = "Eine Vorschau auf das Kopierte";
+"Battery level when you plug in or unplug" = "Akkustand beim Anstecken und Abziehen";
+"Name and battery when they connect" = "Name und Akku beim Verbinden";

@@ -28,8 +28,6 @@ The app is available in English and German and picks the language from your syst
 
 The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
 
-Optionally, ReNotched. can also hide macOS's own volume overlay so that only the island animates (Settings → "Hide macOS volume overlay", off by default).
-
 Each indicator can be switched off in the app's settings window, which is also where you quit the app and enable **Launch at login**.
 
 ## How it works
@@ -40,7 +38,6 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 - **Copying** is detected by watching the pasteboard change counter twice a second (macOS has no notification for it).
 - **Charger** uses IOKit power-source notifications, so there is no polling.
 - **Headphones** use IOBluetooth connect notifications.
-- **Hiding the macOS volume overlay** (optional) suspends the system helper `OSDUIHelper`, which draws that overlay, with a plain signal while the built-in display is the main display. No permission is needed. When you switch it off or quit the app, the helper is ended so macOS starts a fresh one. The brightness overlay comes from the same helper and is hidden too. If the app is force-quit while this is on, the overlay stays away until the next login or `killall -9 OSDUIHelper`.
 - **Focus** reads the Focus database in `~/Library/DoNotDisturb/DB` (read-only, change-triggered), which only works once you grant the app Full Disk Access in System Settings.
 - **Fullscreen:** the panel lives on one desktop space rather than on all spaces, so a fullscreen space never shows it. After a space change it is moved to the new desktop, unless that space is a fullscreen one. That check is a read-only query of the active space type (a private CoreGraphics call used only for this).
 - **Now playing** is read with the third-party [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because Apple restricted the private MediaRemote interface for regular apps in macOS 15.4. It runs as one long-lived helper process that only reports changes.

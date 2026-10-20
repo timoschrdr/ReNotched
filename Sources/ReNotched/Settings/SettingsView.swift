@@ -3,14 +3,12 @@ import SwiftUI
 
 enum Pref {
     static let volume = "showVolume", copy = "showCopy", power = "showPower", device = "showDevice", focus = "showFocus"
-    static let hideSystemHUD = "hideSystemVolumeHUD"
-    /// Everything is on by default, except Focus (needs Full Disk Access) and hiding the macOS volume overlay.
-    static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? (key != focus && key != hideSystemHUD) }
+    /// Everything is on by default, except Focus, which needs Full Disk Access.
+    static func on(_ key: String) -> Bool { UserDefaults.standard.object(forKey: key) as? Bool ?? (key != focus) }
 }
 
 extension Notification.Name {
     static let focusPreferenceChanged = Notification.Name("ReNotched.focusPreferenceChanged")
-    static let hideSystemHUDPreferenceChanged = Notification.Name("ReNotched.hideSystemHUDPreferenceChanged")
 }
 
 private extension View {
@@ -25,6 +23,7 @@ private struct Row: View {
     var subtitle: LocalizedStringKey? = nil
     var actionTitle: LocalizedStringKey? = nil
     var action: (() -> Void)? = nil
+    var disabled = false
     @Binding var isOn: Bool
     @Environment(\.colorScheme) private var scheme
 
@@ -44,7 +43,7 @@ private struct Row: View {
             }
             Spacer()
             if let actionTitle, let action { Button(actionTitle, action: action).buttonStyle(.glass).controlSize(.small) }
-            Toggle(title, isOn: $isOn).labelsHidden().toggleStyle(.switch)
+            Toggle(title, isOn: $isOn).labelsHidden().toggleStyle(.switch).disabled(disabled)
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
     }
@@ -55,7 +54,6 @@ struct SettingsView: View {
     let focusAvailable: () -> Bool
     @State private var focusReadable: Bool
     @AppStorage(Pref.focus) private var focus = false
-    @AppStorage(Pref.hideSystemHUD) private var hideSystemHUD = false
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
     @AppStorage(Pref.power) private var power = true
@@ -80,33 +78,26 @@ struct SettingsView: View {
 
             Text("Manage island animations").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
             VStack(spacing: 0) {
-                Row(symbol: "speaker.wave.2.fill", color: .blue, title: "Volume", isOn: $volume)
-                Row(symbol: "doc.on.doc.fill", color: .orange, title: "Copying", isOn: $copy)
-                Row(symbol: "bolt.fill", color: .green, title: "Charger", isOn: $power)
-                Row(symbol: "headphones", color: .purple, title: "Headphones connected", isOn: $device)
+                Row(symbol: "speaker.wave.2.fill", color: .blue, title: "Volume", subtitle: "Level and mute when you change it", isOn: $volume)
+                Row(symbol: "doc.on.doc.fill", color: .orange, title: "Copying", subtitle: "A preview of what you copy", isOn: $copy)
+                Row(symbol: "bolt.fill", color: .green, title: "Charger", subtitle: "Battery level when you plug in or unplug", isOn: $power)
+                Row(symbol: "headphones", color: .purple, title: "Headphones", subtitle: "Name and battery when they connect", isOn: $device)
                 // The caption is always there, so the layout never changes when access is granted or missing.
+                // Greyed out until Full Disk Access is granted; the caption says why.
                 Row(symbol: "moon.fill", color: .indigo, title: "Focus", subtitle: "Needs Full Disk Access",
-                    actionTitle: focus && !focusReadable ? "Open" : nil,
+                    actionTitle: focusReadable ? nil : "Open",
                     action: { NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) },
-                    isOn: $focus)
+                    disabled: !focusReadable,
+                    isOn: Binding(get: { focus && focusReadable }, set: { focus = $0 }))
             }
             .padding(.vertical, 4).card()
 
-            VStack(spacing: 0) {
-                Row(symbol: "speaker.slash.fill", color: .red, title: "Hide macOS volume overlay",
-                    subtitle: "Only the island shows the volume", isOn: $hideSystemHUD)
-                Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
-            }
-            .padding(.vertical, 4).card()
-            .onChange(of: login) { _, on in
-                do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
-                catch { login = SMAppService.mainApp.status == .enabled }
-            }
-            .onChange(of: hideSystemHUD) {
-                NotificationCenter.default.post(name: .hideSystemHUDPreferenceChanged, object: nil)
-            }
-
-            Spacer(minLength: 0)
+            Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
+                .card()
+                .onChange(of: login) { _, on in
+                    do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
+                    catch { login = SMAppService.mainApp.status == .enabled }
+                }
 
             HStack(alignment: .top, spacing: 10) {
                 Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.primary)
@@ -119,7 +110,8 @@ struct SettingsView: View {
             .padding(14).card()
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
-        .frame(width: 400, height: 604)   // fixed: the window must not change size once it is open
+        .frame(width: 400)
+        .fixedSize(horizontal: false, vertical: true)   // the window fits its content; nothing in it changes height afterwards
         .onAppear { focusReadable = focusAvailable() }
         .onChange(of: focus) {
             focusReadable = focusAvailable()
