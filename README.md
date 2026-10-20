@@ -106,3 +106,14 @@ ReNotched. does not collect, store or send any personal data. It has no accounts
 ## License
 
 MIT – see [LICENSE](LICENSE). Third-party components keep their own licenses. The app icon can be regenerated with `swift Tools/make-icon.swift`.
+
+### Alternative icon
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/icon-penguin-dark.png">
+    <img src="docs/icon-penguin-light.png" width="128" alt="Penguin app icon">
+  </picture>
+</p>
+
+A penguin icon (light and dark) is included. Build it with `ICON=penguin ./build.sh`. The penguin artwork (`Tools/penguin-source.png`) is cut out and placed on the icon canvas by `swift Tools/make-penguin-layer.swift`.

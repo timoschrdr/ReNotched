@@ -1,0 +1,10 @@
+{
+  "fill-specializations": [
+    { "value": { "solid": "display-p3:0.99200,0.96900,0.94100,1.00000" } },
+    { "appearance": "dark", "value": { "solid": "display-p3:0.09000,0.08600,0.11000,1.00000" } }
+  ],
+  "groups": [
+    { "layers": [ { "image-name": "penguin.png", "name": "penguin" } ] }
+  ],
+  "supported-platforms": { "squares": "shared" }
+}

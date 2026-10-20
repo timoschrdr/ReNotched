@@ -10,8 +10,12 @@ mkdir -p "$APP/Contents/MacOS"
 cp .build/release/ReNotched "$APP/Contents/MacOS/ReNotched"
 mkdir -p "$APP/Contents/Resources"
 cp Info.plist "$APP/Contents/Info.plist"
-xcrun actool Resources/AppIcon.icon --compile "$APP/Contents/Resources" --platform macosx \
+# ICON=penguin ./build.sh builds with the alternative penguin icon
+ICON_DIR=$(mktemp -d)
+cp -R "Resources/$([ "${ICON:-}" = "penguin" ] && echo AppIconPenguin || echo AppIcon).icon" "$ICON_DIR/AppIcon.icon"
+xcrun actool "$ICON_DIR/AppIcon.icon" --compile "$APP/Contents/Resources" --platform macosx \
   --minimum-deployment-target 26.0 --app-icon AppIcon --output-partial-info-plist /dev/null > /dev/null
+rm -rf "$ICON_DIR"
 cp -R Resources/de.lproj "$APP/Contents/Resources/"
 cp Vendor/mediaremote-adapter.pl "$APP/Contents/Resources/"
 cp -R Vendor/MediaRemoteAdapter.framework "$APP/Contents/Resources/"
