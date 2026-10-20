@@ -66,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func applyAppIcon() {
         let choice = AppIconChoice.current
         let dark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        NSApp.applicationIconImage = choice == .standard ? nil : choice.image(dark: dark)
+        NSApp.applicationIconImage = choice == .penguin ? nil : choice.image(dark: dark)
     }
 
     // MARK: Monitors

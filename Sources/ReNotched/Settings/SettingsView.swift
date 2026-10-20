@@ -75,7 +75,7 @@ struct SettingsView: View {
     let focusAvailable: () -> Bool
     @State private var focusReadable: Bool
     @AppStorage(Pref.focus) private var focus = false
-    @AppStorage(AppIconChoice.preferenceKey) private var appIcon = AppIconChoice.standard.rawValue
+    @AppStorage(AppIconChoice.preferenceKey) private var appIcon = AppIconChoice.penguin.rawValue
     @Environment(\.colorScheme) private var scheme
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
@@ -91,7 +91,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
-                Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .standard).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
+                Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .penguin).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ReNotched.").font(.title2.weight(.semibold))
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)

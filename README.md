@@ -77,7 +77,7 @@ Sources/ReNotched/
   Views/                     the island and one view per indicator; Views/Music for the player
   Settings/                  settings window and preferences
 Vendor/                      mediaremote-adapter (BSD-3)
-Resources/                   app icon (Icon Composer format) and German strings
+Resources/                   app icons (Icon Composer format; penguin default, island alternative) and German strings
 ```
 
 ## Usage
@@ -85,6 +85,24 @@ Resources/                   app icon (Icon Composer format) and German strings
 1. Open the app once. Its settings window lets you choose which indicators you want. Closing that window leaves the app running in the background without a Dock icon. To open the settings again (or to quit with the power button in the window), open the app a second time from Finder or Spotlight.
 2. macOS asks for **Bluetooth** access. This is only used to notice when headphones connect. Without it, the headphone indicator stays off.
 3. Play music, change the volume or copy something – the island reacts on its own. Click the island while music is playing to open the player.
+
+## App icon
+
+The default icon is a waving penguin. An alternative icon with the notch and a small player (the original design) can be chosen in the settings under **App icon**. It becomes the Dock icon while the app runs and is remembered. The icon of the app file itself (Finder) is set when building: `./build.sh` uses the penguin, `ICON=island ./build.sh` the alternative one.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/icon-dark.png">
+    <img src="docs/icon-light.png" width="96" alt="Penguin app icon (default)">
+  </picture>
+  &nbsp;&nbsp;
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/icon-island-dark.png">
+    <img src="docs/icon-island-light.png" width="96" alt="Island app icon (alternative)">
+  </picture>
+</p>
+
+Both icons follow the system's light and dark appearance. The penguin illustration was generated with an AI image tool (ChatGPT). The artwork comes from `Tools/penguin-source.png`, which `swift Tools/make-penguin-layer.swift` cuts out and places on the icon canvas, and from `swift Tools/make-icon.swift` for the alternative.
 
 ## Privacy
 
@@ -105,15 +123,4 @@ ReNotched. does not collect, store or send any personal data. It has no accounts
 
 ## License
 
-MIT – see [LICENSE](LICENSE). Third-party components keep their own licenses. The app icon can be regenerated with `swift Tools/make-icon.swift`.
-
-### Alternative icon
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/icon-penguin-dark.png">
-    <img src="docs/icon-penguin-light.png" width="128" alt="Penguin app icon">
-  </picture>
-</p>
-
-A penguin icon (light and dark) is included. Pick it in the settings under **App icon**: it becomes the Dock icon while the app runs and is remembered. To make it the icon of the app file itself (Finder), build with `ICON=penguin ./build.sh`. The penguin artwork (`Tools/penguin-source.png`) is cut out and placed on the icon canvas by `swift Tools/make-penguin-layer.swift`.
+MIT – see [LICENSE](LICENSE). Third-party components keep their own licenses.

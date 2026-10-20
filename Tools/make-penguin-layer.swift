@@ -1,9 +1,7 @@
-// Turns Tools/penguin-source.png (the penguin icon artwork, on a cream rounded-square background) into the
+// Generates the default app icon. Turns Tools/penguin-source.png (the penguin icon artwork, on a cream rounded-square background) into the
 // transparent layer of the native icon: swift Tools/make-penguin-layer.swift
-//  - Resources/AppIconPenguin.icon/Assets/penguin.png: the penguin only, filling the 1024 × 1024 canvas
-//  - docs/icon-penguin-light.png and docs/icon-penguin-dark.png: previews for the README
-//  - Resources/PenguinIcon-light.png and PenguinIcon-dark.png: Dock-ready icons (with margin and shadow) that the
-//    app sets at runtime when the penguin is chosen in the settings
+//  - Resources/AppIcon.icon/Assets/penguin.png: the penguin only, filling the 1024 × 1024 canvas
+//  - docs/icon-light.png and docs/icon-dark.png: previews for the README
 // The background is removed with a flood fill from the outside; the cream face and belly stay because they are
 // enclosed by the blue body. Edge pixels get a soft alpha, so there is no cream halo.
 import AppKit
@@ -99,41 +97,8 @@ func draw(_ size: Int, background: NSColor?, rounded: Bool) -> NSBitmapImageRep 
 }
 func write(_ r: NSBitmapImageRep, _ path: String) { try! r.representation(using: .png, properties: [:])!.write(to: URL(filePath: path)) }
 
-try? FileManager.default.createDirectory(atPath: "Resources/AppIconPenguin.icon/Assets", withIntermediateDirectories: true)
-write(draw(1024, background: nil, rounded: false), "Resources/AppIconPenguin.icon/Assets/penguin.png")
-write(draw(256, background: NSColor(srgbRed: 0.992, green: 0.969, blue: 0.941, alpha: 1), rounded: true), "docs/icon-penguin-light.png")
-write(draw(256, background: NSColor(srgbRed: 0.090, green: 0.086, blue: 0.110, alpha: 1), rounded: true), "docs/icon-penguin-dark.png")
-
-// Dock-ready icon: the standard 824-point rounded square centred in a 1024 canvas, with a soft shadow
-func dockIcon(background: NSColor) -> NSBitmapImageRep {
-    let r = bitmap(1024)
-    NSGraphicsContext.saveGraphicsState()
-    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: r)
-    let ctx = NSGraphicsContext.current!
-    ctx.imageInterpolation = .high
-    let body = NSRect(x: 100, y: 100, width: 824, height: 824)
-    let shape = NSBezierPath(roundedRect: body, xRadius: 185, yRadius: 185)
-    ctx.saveGraphicsState()
-    let shadow = NSShadow()
-    shadow.shadowColor = NSColor.black.withAlphaComponent(0.28); shadow.shadowOffset = NSSize(width: 0, height: -12); shadow.shadowBlurRadius = 24
-    shadow.set()
-    background.setFill(); shape.fill()
-    ctx.restoreGraphicsState()
-    shape.addClip()
-    background.setFill(); body.fill()
-    ctx.cgContext.draw(cropped, in: body)
-    NSGraphicsContext.restoreGraphicsState()
-    return r
-}
-func scaled(_ r: NSBitmapImageRep, to size: Int) -> NSBitmapImageRep {
-    let out = bitmap(size)
-    NSGraphicsContext.saveGraphicsState()
-    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: out)
-    NSGraphicsContext.current?.imageInterpolation = .high
-    r.draw(in: NSRect(x: 0, y: 0, width: size, height: size))
-    NSGraphicsContext.restoreGraphicsState()
-    return out
-}
-write(scaled(dockIcon(background: NSColor(srgbRed: 0.992, green: 0.969, blue: 0.941, alpha: 1)), to: 512), "Resources/PenguinIcon-light.png")
-write(scaled(dockIcon(background: NSColor(srgbRed: 0.090, green: 0.086, blue: 0.110, alpha: 1)), to: 512), "Resources/PenguinIcon-dark.png")
+try? FileManager.default.createDirectory(atPath: "Resources/AppIcon.icon/Assets", withIntermediateDirectories: true)
+write(draw(1024, background: nil, rounded: false), "Resources/AppIcon.icon/Assets/penguin.png")
+write(draw(256, background: NSColor(srgbRed: 0.992, green: 0.969, blue: 0.941, alpha: 1), rounded: true), "docs/icon-light.png")
+write(draw(256, background: NSColor(srgbRed: 0.090, green: 0.086, blue: 0.110, alpha: 1), rounded: true), "docs/icon-dark.png")
 print("done")

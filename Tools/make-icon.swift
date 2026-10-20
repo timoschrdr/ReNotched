@@ -1,7 +1,9 @@
-// Generates the icon artwork: swift Tools/make-icon.swift
-//  - Resources/AppIcon.icon/Assets/island.png: foreground layer of the native macOS 26 icon (background and
-//    light/dark variants are defined in Resources/AppIcon.icon/icon.json and compiled by actool in build.sh)
-//  - docs/icon-light.png and docs/icon-dark.png for the README
+// Generates the artwork of the alternative island icon: swift Tools/make-icon.swift
+//  - Resources/AppIconIsland.icon/Assets/island.png: foreground layer of the native macOS 26 icon (background and
+//    light/dark variants are defined in Resources/AppIconIsland.icon/icon.json, compiled by build.sh with ICON=island)
+//  - docs/icon-island-light.png and docs/icon-island-dark.png for the README
+//  - Resources/IslandIcon-light.png and IslandIcon-dark.png: Dock-ready icons that the app sets at runtime when this
+//    icon is chosen in the settings
 import AppKit
 
 let S: CGFloat = 1024
@@ -62,8 +64,25 @@ func png(_ image: NSImage, px: Int) -> Data {
 }
 let light = render(dark: false), dark = render(dark: true)
 try? FileManager.default.createDirectory(atPath: "docs", withIntermediateDirectories: true)
-try! png(light, px: 256).write(to: URL(filePath: "docs/icon-light.png"))
-try! png(dark, px: 256).write(to: URL(filePath: "docs/icon-dark.png"))
+try! png(light, px: 256).write(to: URL(filePath: "docs/icon-island-light.png"))
+try! png(dark, px: 256).write(to: URL(filePath: "docs/icon-island-dark.png"))
 // Layer for the native macOS 26 icon (Icon Composer format): the system adds background and light/dark variants.
-try? FileManager.default.createDirectory(atPath: "Resources/AppIcon.icon/Assets", withIntermediateDirectories: true)
-try! png(render(dark: false, foregroundOnly: true), px: 1024).write(to: URL(filePath: "Resources/AppIcon.icon/Assets/island.png"))
+try? FileManager.default.createDirectory(atPath: "Resources/AppIconIsland.icon/Assets", withIntermediateDirectories: true)
+try! png(render(dark: false, foregroundOnly: true), px: 1024).write(to: URL(filePath: "Resources/AppIconIsland.icon/Assets/island.png"))
+
+// Dock-ready icons: the rounded square from the render (824 pt with margin) plus a soft shadow, 512 px
+for (name, image) in [("light", light), ("dark", dark)] {
+    let size = 512
+    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8, samplesPerPixel: 4,
+                               hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+    rep.size = NSSize(width: size, height: size)
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+    NSGraphicsContext.current?.imageInterpolation = .high
+    let shadow = NSShadow()
+    shadow.shadowColor = NSColor.black.withAlphaComponent(0.28); shadow.shadowOffset = NSSize(width: 0, height: -6); shadow.shadowBlurRadius = 12
+    shadow.set()
+    image.draw(in: NSRect(x: 0, y: 0, width: size, height: size))
+    NSGraphicsContext.restoreGraphicsState()
+    try! rep.representation(using: .png, properties: [:])!.write(to: URL(filePath: "Resources/IslandIcon-\(name).png"))
+}
