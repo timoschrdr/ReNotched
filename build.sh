@@ -17,6 +17,7 @@ xcrun actool "$ICON_DIR/AppIcon.icon" --compile "$APP/Contents/Resources" --plat
   --minimum-deployment-target 26.0 --app-icon AppIcon --output-partial-info-plist /dev/null > /dev/null
 rm -rf "$ICON_DIR"
 cp -R Resources/de.lproj "$APP/Contents/Resources/"
+cp Resources/PenguinIcon-light.png Resources/PenguinIcon-dark.png "$APP/Contents/Resources/"
 cp Vendor/mediaremote-adapter.pl "$APP/Contents/Resources/"
 cp -R Vendor/MediaRemoteAdapter.framework "$APP/Contents/Resources/"
 cp Vendor/MediaRemoteAdapter.LICENSE "$APP/Contents/Resources/"

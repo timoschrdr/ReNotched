@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let focus = FocusMonitor()
     private var settingsWindow: NSWindow?
     private var termSource: DispatchSourceSignal?
+    private var appearanceObservation: NSKeyValueObservation?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         panel.start()
@@ -31,6 +32,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         connectMonitors()
         music.start()
+        applyAppIcon()
+        NotificationCenter.default.addObserver(forName: .appIconPreferenceChanged, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyAppIcon() }
+        }
+        // The Dock shows a fixed image, so a light/dark switch of the system needs a new one.
+        appearanceObservation = NSApp.observe(\.effectiveAppearance) { [weak self] _, _ in
+            MainActor.assumeIsolated { self?.applyAppIcon() }
+        }
         quitCleanlyOnSIGTERM()
     }
 
@@ -49,6 +58,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showSettings()
         return true
+    }
+
+    // MARK: App icon
+
+    /// Sets the chosen icon as the Dock icon while the app runs; `nil` restores the icon from the bundle.
+    private func applyAppIcon() {
+        let choice = AppIconChoice.current
+        let dark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        NSApp.applicationIconImage = choice == .standard ? nil : choice.image(dark: dark)
     }
 
     // MARK: Monitors

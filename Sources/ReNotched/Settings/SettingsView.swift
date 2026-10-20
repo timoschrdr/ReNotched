@@ -49,11 +49,34 @@ private struct Row: View {
     }
 }
 
+private struct IconTile: View {
+    let choice: AppIconChoice
+    let selected: Bool
+    let dark: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Image(nsImage: choice.image(dark: dark)).resizable().frame(width: 72, height: 72)
+                Text(choice.title).font(.caption.weight(selected ? .semibold : .regular))
+            }
+            .padding(10)
+            .background(selected ? AnyShapeStyle(.tint.opacity(0.18)) : AnyShapeStyle(.clear), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(.tint, lineWidth: selected ? 2 : 0))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
 struct SettingsView: View {
     /// Whether the Focus database can be read (Full Disk Access granted).
     let focusAvailable: () -> Bool
     @State private var focusReadable: Bool
     @AppStorage(Pref.focus) private var focus = false
+    @AppStorage(AppIconChoice.preferenceKey) private var appIcon = AppIconChoice.standard.rawValue
+    @Environment(\.colorScheme) private var scheme
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
     @AppStorage(Pref.power) private var power = true
@@ -68,7 +91,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
-                Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 56, height: 56)
+                Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .standard).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ReNotched.").font(.title2.weight(.semibold))
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
@@ -91,6 +114,15 @@ struct SettingsView: View {
                     isOn: Binding(get: { focus && focusReadable }, set: { focus = $0 }))
             }
             .padding(.vertical, 4).card()
+
+            Text("App icon").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
+            HStack(spacing: 14) {
+                ForEach(AppIconChoice.allCases) { choice in
+                    IconTile(choice: choice, selected: appIcon == choice.rawValue, dark: scheme == .dark) { appIcon = choice.rawValue }
+                }
+            }
+            .frame(maxWidth: .infinity).padding(.vertical, 12).card()
+            .onChange(of: appIcon) { NotificationCenter.default.post(name: .appIconPreferenceChanged, object: nil) }
 
             Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
                 .card()

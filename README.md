@@ -116,4 +116,4 @@ MIT – see [LICENSE](LICENSE). Third-party components keep their own licenses. 
   </picture>
 </p>
 
-A penguin icon (light and dark) is included. Build it with `ICON=penguin ./build.sh`. The penguin artwork (`Tools/penguin-source.png`) is cut out and placed on the icon canvas by `swift Tools/make-penguin-layer.swift`.
+A penguin icon (light and dark) is included. Pick it in the settings under **App icon**: it becomes the Dock icon while the app runs and is remembered. To make it the icon of the app file itself (Finder), build with `ICON=penguin ./build.sh`. The penguin artwork (`Tools/penguin-source.png`) is cut out and placed on the icon canvas by `swift Tools/make-penguin-layer.swift`.
