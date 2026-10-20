@@ -8,8 +8,8 @@ final class ClipboardMonitor {
     private var timer: Timer?
 
     func start() {
-        let t = Timer(timeInterval: 0.3, repeats: true) { [weak self] _ in self?.poll() }
-        t.tolerance = 0.15 // lets the system coalesce wakeups
+        let t = Timer(timeInterval: 0.5, repeats: true) { [weak self] _ in self?.poll() }
+        t.tolerance = 0.25 // lets the system coalesce wakeups
         RunLoop.main.add(t, forMode: .common)
         timer = t
     }
