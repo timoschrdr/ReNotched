@@ -68,6 +68,7 @@ struct SettingsView: View {
     @State private var focusReadable: Bool
     @AppStorage(Pref.focus) private var focus = false
     @AppStorage(AppIconChoice.preferenceKey) private var appIcon = AppIconChoice.penguin.rawValue
+    @State private var showIconChoice = false
     @Environment(\.colorScheme) private var scheme
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
@@ -83,7 +84,14 @@ struct SettingsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
-                Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .penguin).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
+                // A click on the app icon shows or hides the icon choice
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showIconChoice.toggle() }
+                } label: {
+                    Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .penguin).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
+                }
+                .buttonStyle(.plain)
+                .help("Change the app icon")
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ReNotched.").font(.title2.weight(.semibold))
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
@@ -107,14 +115,19 @@ struct SettingsView: View {
             }
             .padding(.vertical, 4).card()
 
-            Text("App icon").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
-            HStack(spacing: 14) {
-                ForEach(AppIconChoice.allCases) { choice in
-                    IconTile(choice: choice, selected: appIcon == choice.rawValue, dark: scheme == .dark) { appIcon = choice.rawValue }
+            if showIconChoice {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("App icon").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
+                    HStack(spacing: 14) {
+                        ForEach(AppIconChoice.allCases) { choice in
+                            IconTile(choice: choice, selected: appIcon == choice.rawValue, dark: scheme == .dark) { appIcon = choice.rawValue }
+                        }
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 12).card()
+                    .onChange(of: appIcon) { NotificationCenter.default.post(name: .appIconPreferenceChanged, object: nil) }
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            .frame(maxWidth: .infinity).padding(.vertical, 12).card()
-            .onChange(of: appIcon) { NotificationCenter.default.post(name: .appIconPreferenceChanged, object: nil) }
 
             Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
                 .card()
