@@ -93,7 +93,7 @@ struct SettingsView: View {
             HStack(spacing: 14) {
                 Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .penguin).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("ReNotched.").font(.title2.weight(.semibold))
+                    HandwrittenTitle()
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
                 }
             }

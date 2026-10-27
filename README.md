@@ -28,6 +28,8 @@ The app is available in English and German and picks the language from your syst
 
 The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
 
+The settings window writes the app's name by hand with an animated pen, in the manner of the "hello" on a new Mac (it respects Reduce Motion).
+
 Each indicator can be switched off in the app's settings window, which is also where you quit the app and enable **Launch at login**.
 
 ## How it works
