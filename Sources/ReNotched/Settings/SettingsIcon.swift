@@ -31,10 +31,10 @@ struct SettingsIcon: View {
             }
             .overlay {
                 // the shimmering rim: bright at the top edge, fading towards the bottom
-                shape.strokeBorder(LinearGradient(colors: [.white.opacity(dark ? 0.42 : 0.55), .white.opacity(dark ? 0.06 : 0.12),
-                                                           .white.opacity(dark ? 0.14 : 0.2)],
+                shape.strokeBorder(LinearGradient(colors: [.white.opacity(dark ? 0.24 : 0.32), .white.opacity(dark ? 0.03 : 0.06),
+                                                           .white.opacity(dark ? 0.07 : 0.1)],
                                                   startPoint: .top, endPoint: .bottom),
-                                   lineWidth: max(0.75, size * 0.03))
+                                   lineWidth: max(0.5, size * 0.02))
             }
             .shadow(color: .black.opacity(dark ? 0.35 : 0.12), radius: size * 0.05, y: size * 0.03)
     }
