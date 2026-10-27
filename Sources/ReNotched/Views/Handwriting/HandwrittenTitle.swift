@@ -3,7 +3,7 @@ import SwiftUI
 /// The app's name written by an invisible pen, like the "hello" on a new Mac: the strokes are drawn one after
 /// the other at a constant speed. Closing and reopening the window, or a click on the title, writes it again.
 struct HandwrittenTitle: View {
-    var height: CGFloat = 50
+    var height: CGFloat = 46
     @State private var progress = 0.0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 

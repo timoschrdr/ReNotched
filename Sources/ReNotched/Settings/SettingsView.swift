@@ -25,18 +25,10 @@ private struct Row: View {
     var action: (() -> Void)? = nil
     var disabled = false
     @Binding var isOn: Bool
-    @Environment(\.colorScheme) private var scheme
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol)
-                .font(.system(size: 14, weight: .semibold))
-                // Like System Settings: coloured tile with white glyph in light mode, black tile with coloured glyph in dark mode
-                .foregroundStyle(scheme == .dark ? color : .white)
-                .frame(width: 30, height: 30)
-                .background(scheme == .dark ? AnyShapeStyle(Color.black) : AnyShapeStyle(color.gradient),
-                            in: RoundedRectangle(cornerRadius: 9, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).strokeBorder(.white.opacity(scheme == .dark ? 0.12 : 0), lineWidth: 0.5))
+            SettingsIcon(symbol: symbol, color: color)
             VStack(alignment: .leading, spacing: 0) {
                 Text(title)
                 if let subtitle { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
