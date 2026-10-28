@@ -1,46 +1,64 @@
 import SwiftUI
 
 /// Focus turned on or off, shown around the notch: the mode's icon on the left, its state on the right.
-/// "On" fills the icon with the mode's colour and sends a ripple out; "Off" drains the colour and slashes the icon.
+/// The island first shows the previous state, then switches over: turning on fills the icon with the mode's
+/// colour, lifts the slash and sends a ripple out; turning off drains the colour and draws the slash across.
 struct FocusContent: View {
     @ObservedObject var model: IslandModel
     @State private var appeared = false
+    @State private var shownOn: Bool?          // the state on screen; nil until the view appears
+    @State private var ripple = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         let (symbol, tint, on): (String, Color, Bool) = {
             if case let .focus(s, t, o)? = model.transient { return (s, Self.color(named: t), o) }
             return ("moon.fill", .indigo, false)
         }()
+        let lit = shownOn ?? !on
 
         SideLayout(notchWidth: model.notch.width, height: model.notch.height) {
             ZStack {
-                Circle().stroke(tint, lineWidth: 2)                       // ripple, only visible while appearing
-                    .scaleEffect(appeared ? 2.4 : 0.8).opacity(appeared || !on ? 0 : 0.8)
-                Circle().fill(on ? tint : Color.white.opacity(0.18))
-                    .shadow(color: on ? tint.opacity(0.7) : .clear, radius: 7)
+                Circle().stroke(tint, lineWidth: 2)                       // ripple when Focus turns on
+                    .scaleEffect(ripple ? 2.4 : 0.8).opacity(ripple ? 0 : (lit ? 0.8 : 0))
+                Circle().fill(lit ? tint : Color.white.opacity(0.18))
+                    .shadow(color: lit ? tint.opacity(0.7) : .clear, radius: 7)
                     .scaleEffect(appeared ? 1 : 0.3)
                 Image(systemName: symbol)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(on ? 1 : 0.55))
-                    .symbolEffect(.bounce, options: .nonRepeating, value: appeared)
+                    .foregroundStyle(.white.opacity(lit ? 1 : 0.55))
+                    .symbolEffect(.bounce, options: .nonRepeating, value: lit)
                     .scaleEffect(appeared ? 1 : 0.2)
-                Slash().trim(from: 0, to: !on && appeared ? 1 : 0)       // draws across when turned off
+                Slash().trim(from: 0, to: lit ? 0 : 1)                    // drawn across while off
                     .stroke(.white.opacity(0.9), style: StrokeStyle(lineWidth: 2, lineCap: .round))
                     .frame(width: 15, height: 15)
             }
             .frame(width: 26, height: 26)
         } right: {
-            Text(on ? "On" : "Off")
+            Text(lit ? "On" : "Off")
                 .font(.system(size: 12, weight: .semibold))
+                .contentTransition(.interpolate)
                 .padding(.horizontal, 10).padding(.vertical, 3)
-                .background(on ? tint : Color.white.opacity(0.18), in: Capsule())
+                .background(lit ? tint : Color.white.opacity(0.18), in: Capsule())
                 .foregroundStyle(.white)
                 .offset(x: appeared ? 0 : 16).opacity(appeared ? 1 : 0)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.55)) { appeared = true }
+            if reduceMotion { shownOn = on; appeared = true; return }
+            shownOn = !on                                             // start from the previous state
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) { appeared = true }
+            switchOver(to: on, after: 0.45)
         }
-        .animation(.easeOut(duration: 0.5), value: appeared)
+        .onChange(of: on) { switchOver(to: on, after: 0) }        // toggled again while visible
+    }
+
+    private func switchOver(to on: Bool, after delay: Double) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) { shownOn = on }
+            guard on, !reduceMotion else { return }
+            ripple = false
+            withAnimation(.easeOut(duration: 0.7)) { ripple = true }
+        }
     }
 
     /// Maps the system's colour names (as used in the Focus configuration) to SwiftUI colours.
