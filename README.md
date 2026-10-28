@@ -50,7 +50,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 
 ## Install
 
-1. Download `ReNotched-1.0.zip` from the [Releases](../../releases) page and unzip it.
+1. Download the latest `ReNotched-<version>.zip` from the [Releases](../../releases) page and unzip it.
 2. Move `ReNotched..app` to your Applications folder. The file name ends in a dot on purpose, so Finder and the Dock show "ReNotched."
 3. The app is signed locally (ad hoc) and not notarized by Apple, because that needs a paid developer account. The first start is therefore blocked: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/ReNotched..app` in Terminal. You only have to do this once.
 
