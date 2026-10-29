@@ -3,19 +3,18 @@ import SwiftUI
 struct ProgressRow: View {
     let position: Double
     let duration: Double
-    let tint: Color
     let seek: (Double) -> Void
 
     var body: some View {
-        HStack(spacing: 8) {
-            Text(format(position)).frame(width: 36, alignment: .leading)
+        HStack(spacing: 10) {
+            Text(format(position)).frame(width: 34, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.25))
-                    Capsule().fill(tint)
+                    Capsule().fill(.white.opacity(0.22))
+                    Capsule().fill(.white)                // white like Apple's player; the song colour stays in the equalizer
                         .frame(width: geo.size.width * (duration > 0 ? CGFloat(min(position / duration, 1)) : 0))
                 }
-                .frame(height: 4).frame(maxHeight: .infinity)
+                .frame(height: 6).frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 0).onEnded { g in
                     guard duration > 0, geo.size.width > 0 else { return }
@@ -23,11 +22,11 @@ struct ProgressRow: View {
                 })
             }
             .frame(height: 14)
-            Text(duration > 0 ? "-" + format(max(duration - position, 0)) : "--:--")
+            Text(duration > 0 ? "\u{2212}" + format(max(duration - position, 0)) : "--:--")
                 .frame(width: 40, alignment: .trailing)
         }
-        .font(.system(size: 10, weight: .medium).monospacedDigit())
-        .foregroundStyle(.white.opacity(0.55))
+        .font(.system(size: 11, weight: .medium).monospacedDigit())
+        .foregroundStyle(.white.opacity(0.6))
     }
 
     private func format(_ s: Double) -> String {
@@ -46,7 +45,7 @@ struct ControlButton: View {
             Image(systemName: symbol)
                 .font(.system(size: size, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 34, height: 28)
+                .frame(width: 46, height: 38)
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressStyle())

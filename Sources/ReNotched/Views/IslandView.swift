@@ -29,7 +29,7 @@ struct IslandView: View {
         let mode = model.mode
         let size = model.size(for: mode)
         let expanded = [.copied, .device, .musicExpanded].contains(mode)
-        let radius: CGFloat = expanded ? 30 : 15
+        let radius: CGFloat = mode == .musicExpanded ? ExpandedMusicContent.margin : (expanded ? 30 : 15)
         let body = UnevenRoundedRectangle(bottomLeadingRadius: radius, bottomTrailingRadius: radius, style: .continuous)
         // Resting on the physical notch, nothing is drawn beyond it; once active the island gets the notch's top "ears".
         let ear: CGFloat = mode == .idle ? 0 : 6
