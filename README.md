@@ -19,12 +19,12 @@ The app is available in English and German and picks the language from your syst
 
 ## What it shows
 
-- **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys, AirPods and mute)
+- **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys, AirPods and mute, and when you press volume down at 0)
 - **Copying** – "Copied" with a preview of the text, file or image. Content marked as confidential by password managers is never previewed
-- **Charger** – a bolt and the battery level when you plug in or unplug the charger
-- **Focus** – the mode's icon, in its own colour, and "On" or "Off" when a Focus mode turns on or off. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
+- **Charger** – the battery as macOS shows it, filled to the exact level and with a bolt while charging, when you plug in or unplug the charger
+- **Focus** – the mode's icon and "On" or "Off" in the mode's colour (grey when off) when a Focus mode turns on or off, like on the iPhone. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
 - **Headphones** – connecting Bluetooth headphones shows their name and, if the device reports it, the battery level
-- **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer and progress bar use the colour of the album cover and a new cover animates in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
+- **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer takes the colour of the album cover and a new cover animates in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
 
 The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
 
@@ -34,7 +34,7 @@ Each indicator can be switched off in the app's settings window, which is also w
 
 ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through panel on top of the notch. It reads the notch size from the screen, so the island always lines up with it. Without a notch it appears at the top centre of the screen.
 
-- **Volume** is observed through Core Audio property listeners.
+- **Volume** is observed through Core Audio property listeners; the volume keys are watched as well, so pressing them at 0 or at the maximum still shows the island.
 - **Copying** is detected by watching the pasteboard change counter twice a second (macOS has no notification for it).
 - **Charger** uses IOKit power-source notifications, so there is no polling.
 - **Headphones** use IOBluetooth connect notifications.

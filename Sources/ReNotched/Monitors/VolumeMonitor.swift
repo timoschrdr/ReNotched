@@ -1,5 +1,5 @@
+import AppKit
 import CoreAudio
-import Foundation
 
 /// Observes volume and mute state of the default output device.
 final class VolumeMonitor {
@@ -16,6 +16,7 @@ final class VolumeMonitor {
     private var defaultBlock: AudioObjectPropertyListenerBlock?
 
     private static let virtualMainVolume: AudioObjectPropertySelector = 0x766D_7663 // 'vmvc'
+    private var keyMonitor: Any?
 
     func start() {
         var addr = AudioObjectPropertyAddress(
@@ -26,6 +27,26 @@ final class VolumeMonitor {
         defaultBlock = block
         AudioObjectAddPropertyListenerBlock(AudioObjectID(kAudioObjectSystemObject), &addr, .main, block)
         attach()
+        watchVolumeKeys()
+    }
+
+    /// Pressing "volume down" at 0 or "volume up" at the maximum changes nothing, so Core Audio stays silent.
+    /// macOS still shows its overlay then, so the island does too: the volume keys are watched as well.
+    private func watchVolumeKeys() {
+        keyMonitor = NSEvent.addGlobalMonitorForEvents(matching: .systemDefined) { [weak self] event in
+            guard event.subtype.rawValue == 8 else { return }                 // auxiliary (media) keys
+            let key = (event.data1 & 0xFFFF_0000) >> 16, down = (event.data1 & 0xFF00) >> 8 == 0x0A
+            guard down, let self, self.lastVolume >= 0, Date() > self.ignoreUntil else { return }
+            let atBottom = key == 1 && (self.lastVolume <= 0.0005 || self.lastMuted)   // NX_KEYTYPE_SOUND_DOWN
+            let atTop = key == 0 && self.lastVolume >= 0.9995 && !self.lastMuted      // NX_KEYTYPE_SOUND_UP
+            if atBottom || atTop {
+                // let Core Audio report a real change first; only announce if nothing changed
+                let before = (self.lastVolume, self.lastMuted)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                    if self.lastVolume == before.0 && self.lastMuted == before.1 { self.onChange?(self.lastVolume, self.lastMuted) }
+                }
+            }
+        }
     }
 
     private func attach() {
