@@ -77,7 +77,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func connectMonitors() {
-        volume.onChange = { [weak self] level, muted in self?.show(Pref.volume, .volume(level: level, muted: muted), for: 1.6) }
+        volume.onChange = { [weak self] level, muted, symbol in self?.show(Pref.volume, .volume(level: level, muted: muted, symbol: symbol), for: 1.6) }
         volume.onBluetoothOutput = { [weak self] name in self?.bluetooth.announce(name: name) }
         volume.start()
 
@@ -87,7 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         power.onChange = { [weak self] percent, plugged in self?.show(Pref.power, .charging(percent: percent, plugged: plugged), for: 2.2) }
         power.start()
 
-        bluetooth.onConnect = { [weak self] name, battery in self?.show(Pref.device, .device(name: name, battery: battery), for: 3) }
+        bluetooth.onConnect = { [weak self] name, battery, symbol in self?.show(Pref.device, .device(name: name, battery: battery, symbol: symbol), for: 3) }
         bluetooth.start()
 
         var lastFocus = FocusMonitor.State(id: "", name: "", symbol: "moon.fill", tint: "systemIndigoColor")

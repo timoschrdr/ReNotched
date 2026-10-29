@@ -4,7 +4,8 @@ import IOBluetooth
 /// Reports Bluetooth headphones connecting, including their battery level.
 /// Two signals feed it: IOBluetooth connect notifications and audio being routed to a Bluetooth output.
 final class BluetoothMonitor: NSObject {
-    var onConnect: ((String, Int?) -> Void)?
+    /// Name, battery level and the SF Symbol of the model (see `HeadphoneSymbol`).
+    var onConnect: ((String, Int?, String) -> Void)?
     private var registration: IOBluetoothUserNotification?
     private var lastShown: [String: Date] = [:]
     private var startDate = Date()
@@ -29,7 +30,7 @@ final class BluetoothMonitor: NSObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
             let paired = (IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice]) ?? []
             let d = device ?? paired.first { Self.clean($0.name ?? "") == name }
-            self?.onConnect?(name, d.flatMap(Self.battery))
+            self?.onConnect?(name, d.flatMap(Self.battery), HeadphoneSymbol.symbol(for: d, name: rawName))
         }
     }
 
@@ -47,6 +48,12 @@ final class BluetoothMonitor: NSObject {
         for key in ["batteryPercentSingle", "batteryPercentCombined", "headsetBattery", "batteryPercent"] where d.responds(to: Selector(key)) {
             if let v = (d.value(forKey: key) as? NSNumber)?.intValue, (1...100).contains(v) { return v }
         }
-        return nil
+        // AirPods report each earbud separately: show the emptier one
+        let buds = ["batteryPercentLeft", "batteryPercentRight"].compactMap { key -> Int? in
+            guard d.responds(to: Selector(key)), let v = (d.value(forKey: key) as? NSNumber)?.intValue,
+                  (1...100).contains(v) else { return nil }
+            return v
+        }
+        return buds.min()
     }
 }

@@ -2,10 +2,10 @@ import SwiftUI
 
 /// Short-lived events that temporarily take over the island.
 enum Transient: Equatable {
-    case volume(level: Float, muted: Bool)
+    case volume(level: Float, muted: Bool, symbol: String?)   // symbol: headphones, if connected
     case copied(preview: String, symbol: String)
     case charging(percent: Int, plugged: Bool)
-    case device(name: String, battery: Int?)
+    case device(name: String, battery: Int?, symbol: String)
     case focus(symbol: String, tint: String, on: Bool)
 }
 

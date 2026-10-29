@@ -3,7 +3,8 @@ import CoreAudio
 
 /// Observes volume and mute state of the default output device.
 final class VolumeMonitor {
-    var onChange: ((Float, Bool) -> Void)?
+    /// Level, muted, and the headphones' SF Symbol while audio plays through headphones (nil for speakers).
+    var onChange: ((Float, Bool, String?) -> Void)?
     /// Called with the device name when audio switches to a Bluetooth output (e.g. headphones connecting).
     var onBluetoothOutput: ((String) -> Void)?
     private var ignoreUntil = Date.distantPast   // a device switch changes the volume too, which is not a key press
@@ -17,6 +18,9 @@ final class VolumeMonitor {
 
     private static let virtualMainVolume: AudioObjectPropertySelector = 0x766D_7663 // 'vmvc'
     private var keyMonitor: Any?
+    /// Symbol of the current Bluetooth output, looked up once per device switch.
+    private var bluetoothSymbol: String?
+    private static let headphoneJack: UInt32 = 0x6864_706E // 'hdpn': wired headphones on the built-in output
 
     func start() {
         var addr = AudioObjectPropertyAddress(
@@ -43,7 +47,7 @@ final class VolumeMonitor {
                 // let Core Audio report a real change first; only announce if nothing changed
                 let before = (self.lastVolume, self.lastMuted)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                    if self.lastVolume == before.0 && self.lastMuted == before.1 { self.onChange?(self.lastVolume, self.lastMuted) }
+                    if self.lastVolume == before.0 && self.lastMuted == before.1 { self.onChange?(self.lastVolume, self.lastMuted, self.headphoneSymbol()) }
                 }
             }
         }
@@ -62,7 +66,9 @@ final class VolumeMonitor {
         let switched = device != kAudioObjectUnknown && id != device
         device = id
         ignoreUntil = Date().addingTimeInterval(1.5)
-        if switched, let name = Self.bluetoothName(of: id) { onBluetoothOutput?(name) }
+        let btName = Self.bluetoothName(of: id)
+        bluetoothSymbol = btName.flatMap(Self.headphoneSymbol(bluetoothName:))
+        if switched, let btName { onBluetoothOutput?(btName) }
 
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in self?.check(announce: true) }
         deviceBlock = block
@@ -83,6 +89,27 @@ final class VolumeMonitor {
         for var a in addresses { AudioObjectRemovePropertyListenerBlock(device, &a, .main, block) }
         addresses.removeAll()
         deviceBlock = nil
+    }
+
+    /// Bluetooth headphones (by model), wired headphones in the jack, or nil for the speakers.
+    /// Bluetooth speakers such as a HomePod or Sonos are not headphones and keep the speaker symbol.
+    private func headphoneSymbol() -> String? {
+        if let bluetoothSymbol { return bluetoothSymbol }
+        var source: UInt32 = 0
+        var size = UInt32(MemoryLayout<UInt32>.size)
+        var a = Self.address(kAudioDevicePropertyDataSource)
+        guard AudioObjectHasProperty(device, &a),
+              AudioObjectGetPropertyData(device, &a, 0, nil, &size, &source) == noErr else { return nil }
+        return source == Self.headphoneJack ? HeadphoneSymbol.generic : nil
+    }
+
+    /// The model symbol for Bluetooth headphones, nil for a Bluetooth speaker (HomePod, Sonos, …).
+    private static func headphoneSymbol(bluetoothName name: String) -> String? {
+        let d = HeadphoneSymbol.pairedDevice(named: name)
+        let symbol = HeadphoneSymbol.symbol(for: d, name: name)
+        guard symbol == HeadphoneSymbol.generic, let d else { return symbol }
+        // audio device class: wearable headset, hands-free or headphones
+        return d.deviceClassMajor == 4 && [1, 2, 6].contains(d.deviceClassMinor) ? symbol : nil
     }
 
     private static func bluetoothName(of id: AudioObjectID) -> String? {
@@ -121,6 +148,6 @@ final class VolumeMonitor {
         let changed = abs(volume - lastVolume) > 0.0005 || muted != lastMuted
         lastVolume = volume
         lastMuted = muted
-        if announce && changed && Date() > ignoreUntil { onChange?(volume, muted) }
+        if announce && changed && Date() > ignoreUntil { onChange?(volume, muted, headphoneSymbol()) }
     }
 }

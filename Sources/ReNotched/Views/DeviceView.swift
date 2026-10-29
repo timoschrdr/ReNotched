@@ -2,20 +2,22 @@ import SwiftUI
 
 // MARK: - Headphones connected
 
+/// The headphones' symbol (the AirPods model, if known), the name below and the battery as a ring.
+
 struct DeviceContent: View {
     @ObservedObject var model: IslandModel
     @State private var appeared = false
 
     var body: some View {
-        let (name, battery): (String, Int?) = {
-            if case let .device(n, b)? = model.transient { return (n, b) }
-            return ("", nil)
+        let (name, battery, symbol): (String, Int?, String) = {
+            if case let .device(n, b, s)? = model.transient { return (n, b, s) }
+            return ("", nil, HeadphoneSymbol.generic)
         }()
         let level = Double(battery ?? 0) / 100
 
         VStack(spacing: 0) {
             SideLayout(notchWidth: model.notch.width, height: model.notch.height) {
-                Image(systemName: "headphones")
+                Image(systemName: symbol)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
                     .symbolEffect(.bounce, options: .nonRepeating, value: appeared)

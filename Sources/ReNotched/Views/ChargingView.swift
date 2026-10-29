@@ -26,13 +26,16 @@ struct ChargingContent: View {
 
 /// The battery exactly as macOS draws it in the menu bar, from SF Symbols (`battery.100percent`, with `.bolt`
 /// while charging). The symbol has no level of its own, so it is drawn twice: translucent for the empty part and
-/// solid, masked to the exact charge, for the charged part. Red at 10 % or less on battery.
+/// solid, masked to the exact charge, for the charged part. Yellow in Low Power Mode, like macOS and iOS
+/// (it often switches on just after the charger is removed, so the colour follows it live), otherwise red at 10 %
+/// or less on battery.
 struct BatteryGlyph: View {
     let level: Double
     let charging: Bool
+    @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
 
     private var symbol: String { charging ? "battery.100percent.bolt" : "battery.100percent" }
-    private var fillColor: Color { !charging && level <= 0.1 ? .red : .white }
+    private var fillColor: Color { lowPower ? .yellow : !charging && level <= 0.1 ? .red : .white }
 
     var body: some View {
         let glyph = Image(systemName: symbol).font(.system(size: 19, weight: .regular))
@@ -49,5 +52,9 @@ struct BatteryGlyph: View {
         .contentTransition(.symbolEffect(.replace))
         .animation(.spring(response: 0.7, dampingFraction: 0.85), value: level)
         .animation(.easeInOut(duration: 0.3), value: charging)
+        .animation(.easeInOut(duration: 0.3), value: lowPower)
+        .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange).receive(on: RunLoop.main)) { _ in
+            lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+        }
     }
 }
