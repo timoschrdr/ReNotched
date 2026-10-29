@@ -5,6 +5,9 @@ import SwiftUI
 struct CopiedContent: View {
     @ObservedObject var model: IslandModel
 
+    /// Left edge of the copy symbol and of the preview line, clear of the rounded bottom corner.
+    private static let inset: CGFloat = 14
+
     var body: some View {
         let (preview, symbol): (String, String) = {
             if case let .copied(p, s)? = model.transient { return (p, s) }
@@ -12,11 +15,13 @@ struct CopiedContent: View {
         }()
 
         VStack(spacing: 0) {
-            SideLayout(notchWidth: model.notch.width, height: model.notch.height) {
+            // The copy symbol lines up with the preview below it instead of hugging the notch
+            SideLayout(notchWidth: model.notch.width, height: model.notch.height, leftAlignment: .leading) {
                 Image(systemName: "doc.on.doc.fill")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
                     .symbolEffect(.bounce, options: .nonRepeating, value: preview)
+                    .padding(.leading, Self.inset - SideLayout<EmptyView, EmptyView>.outer)
             } right: {
                 HStack(spacing: 5) {
                     Text("Copied")
@@ -36,7 +41,7 @@ struct CopiedContent: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, Self.inset)
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: 30)
         }

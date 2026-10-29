@@ -30,9 +30,9 @@ struct IslandView: View {
         let size = model.size(for: mode)
         let expanded = [.copied, .device, .musicExpanded].contains(mode)
         let radius: CGFloat = mode == .musicExpanded ? ExpandedMusicContent.cornerRadius : (expanded ? 30 : 15)
-        // Top corners: nothing beyond the physical notch while idle, the notch's "ears" while compact, and convex
-        // rounded corners for the expanded player, like the Dynamic Island on the MacBook Pro.
-        let top: CGFloat = mode == .musicExpanded ? radius : (mode == .idle ? 0 : -6)
+        // Top corners: nothing beyond the physical notch while idle, otherwise the notch's "ears" where the island
+        // meets the display edge.
+        let top: CGFloat = mode == .idle ? 0 : -6
         let body = UnevenRoundedRectangle(topLeadingRadius: max(top, 0), bottomLeadingRadius: radius,
                                           bottomTrailingRadius: radius, topTrailingRadius: max(top, 0), style: .continuous)
 

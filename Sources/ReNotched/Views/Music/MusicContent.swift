@@ -52,12 +52,12 @@ struct ExpandedMusicContent: View {
             .padding(.top, 14)
 
             HStack(spacing: 0) {
-                ControlButton(symbol: "backward.fill", size: 22, action: actions.previous)
+                ControlButton(symbol: "backward.fill", size: 18, action: actions.previous)
                 Spacer()
                 ControlButton(symbol: model.isPlaying ? "pause.fill" : "play.fill", size: 26, action: actions.playPause)
                     .contentTransition(.symbolEffect(.replace))
                 Spacer()
-                ControlButton(symbol: "forward.fill", size: 22, action: actions.next)
+                ControlButton(symbol: "forward.fill", size: 18, action: actions.next)
             }
             .padding(.horizontal, 36)
             .padding(.top, 6)
