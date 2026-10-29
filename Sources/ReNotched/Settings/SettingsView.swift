@@ -73,6 +73,7 @@ struct SettingsView: View {
     @AppStorage(Pref.focus) private var focus = false
     @AppStorage(AppIconChoice.preferenceKey) private var appIcon = AppIconChoice.penguin.rawValue
     @State private var showIconChoice = false
+    @State private var showPrivacy = false
     @Environment(\.colorScheme) private var scheme
     @AppStorage(Pref.volume) private var volume = true
     @AppStorage(Pref.copy) private var copy = true
@@ -89,15 +90,24 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack(spacing: 14) {
                 // A click on the app icon shows or hides the icon choice
-                Button {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showIconChoice.toggle() }
-                } label: {
+                Button { showIconChoice.toggle() } label: {
                     Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .penguin).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
                         .contentShape(Rectangle())
                         .help("Change Icon")                  // the tooltip that appears after resting on the icon
                 }
                 .buttonStyle(.plain)
                 .help("Change Icon")
+                .popover(isPresented: $showIconChoice, arrowEdge: .bottom) {
+                    VStack(spacing: 10) {
+                        Text("App icon").font(.headline)
+                        HStack(spacing: 10) {
+                            ForEach(AppIconChoice.allCases) { choice in
+                                IconTile(choice: choice, selected: appIcon == choice.rawValue, dark: scheme == .dark) { appIcon = choice.rawValue }
+                            }
+                        }
+                    }
+                    .padding(14)
+                }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ReNotched.").font(.title2.weight(.semibold))
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
@@ -121,20 +131,6 @@ struct SettingsView: View {
             }
             .padding(.vertical, 4).card()
 
-            if showIconChoice {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("App icon").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
-                    HStack(spacing: 14) {
-                        ForEach(AppIconChoice.allCases) { choice in
-                            IconTile(choice: choice, selected: appIcon == choice.rawValue, dark: scheme == .dark) { appIcon = choice.rawValue }
-                        }
-                    }
-                    .frame(maxWidth: .infinity).padding(.vertical, 12).card()
-                    .onChange(of: appIcon) { NotificationCenter.default.post(name: .appIconPreferenceChanged, object: nil) }
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-
             Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
                 .card()
                 .onChange(of: login) { _, on in
@@ -142,15 +138,6 @@ struct SettingsView: View {
                     catch { login = SMAppService.mainApp.status == .enabled }
                 }
 
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "lock.shield.fill").font(.system(size: 18)).foregroundStyle(.primary)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Privacy").font(.subheadline.weight(.semibold))
-                    Text("ReNotched. works entirely on your Mac. It collects, stores and sends no data and has no network access. Clipboard text, now-playing info and Bluetooth device names are only read to show them on the island and are never saved.")
-                        .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding(14).card()
         }
         .padding(.horizontal, 20).padding(.bottom, 20)
         .frame(width: 400)
@@ -163,7 +150,21 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             focusReadable = focusAvailable()
         }
+        .onChange(of: appIcon) { NotificationCenter.default.post(name: .appIconPreferenceChanged, object: nil) }
         .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                // Privacy note behind a button instead of always on screen
+                Button { showPrivacy.toggle() } label: { Label("Privacy", systemImage: "hand.raised.fill") }
+                    .help("Privacy")
+                    .popover(isPresented: $showPrivacy, arrowEdge: .bottom) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Label("Privacy", systemImage: "hand.raised.fill").font(.headline)
+                            Text("ReNotched. works entirely on your Mac. It collects, stores and sends no data and has no network access. Clipboard text, now-playing info and Bluetooth device names are only read to show them on the island and are never saved.")
+                                .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(16).frame(width: 300)
+                    }
+            }
             ToolbarItem(placement: .primaryAction) {
                 Button { NSApp.terminate(nil) } label: { Label("Quit", systemImage: "power") }
                     .help("Quit ReNotched.")

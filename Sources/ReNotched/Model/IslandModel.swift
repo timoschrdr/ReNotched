@@ -10,7 +10,7 @@ enum Transient: Equatable {
 }
 
 enum IslandMode: Equatable {
-    case idle, volume, copied, device, focus, musicCompact, musicExpanded
+    case idle, volume, charging, copied, device, focus, musicCompact, musicExpanded
 }
 
 /// Everything the island shows. `mode` is stored and only published when it really changes.
@@ -38,16 +38,28 @@ final class IslandModel: ObservableObject {
 
     var currentSize: CGSize { size(for: mode) }
 
+    /// Width of the widest content beside the notch, per mode (the island is symmetric around the notch).
+    private static func content(for mode: IslandMode) -> CGFloat {
+        switch mode {
+        case .volume: 34            // level bar (the speaker on the left is narrower)
+        case .charging: 40          // "100%"
+        case .copied: 64            // "Copied" and the check mark
+        case .device: 28            // battery ring
+        case .focus: 28             // "Off" (the wider of the two words)
+        case .musicCompact: 22      // cover
+        case .idle, .musicExpanded: 0
+        }
+    }
+
     func size(for mode: IslandMode) -> CGSize {
         // The physical notch reaches down to the menu bar's lower edge, slightly below the safe-area inset.
         let w = notch.width, h = notch.height + (mode == .idle ? 0 : notchExtra)
+        let side = Self.content(for: mode) + SideLayout<EmptyView, EmptyView>.gap + SideLayout<EmptyView, EmptyView>.outer
         switch mode {
         case .idle: return CGSize(width: w, height: h)
-        case .volume: return CGSize(width: w + 2 * 76, height: h)
-        case .copied: return CGSize(width: w + 2 * 84, height: h + 36)
-        case .device: return CGSize(width: w + 2 * 92, height: h + 32)
-        case .focus: return CGSize(width: w + 2 * 76, height: h)
-        case .musicCompact: return CGSize(width: w + 2 * 40, height: h)
+        case .volume, .charging, .focus, .musicCompact: return CGSize(width: w + 2 * side, height: h)
+        case .copied: return CGSize(width: w + 2 * side, height: h + 36)
+        case .device: return CGSize(width: w + 2 * side, height: h + 32)
         case .musicExpanded: return CGSize(width: max(w + 150, 380), height: h + 122)
         }
     }
@@ -82,7 +94,8 @@ final class IslandModel: ObservableObject {
     private func computeMode() -> IslandMode {
         if let transient {
             switch transient {
-            case .volume, .charging: return .volume
+            case .volume: return .volume
+            case .charging: return .charging
             case .copied: return .copied
             case .device: return .device
             case .focus: return .focus

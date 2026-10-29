@@ -88,7 +88,7 @@ Resources/                   app icons (Icon Composer format; penguin default, i
 
 ## App icon
 
-The default icon is a waving penguin. An alternative icon with the notch and a small player (the original design) can be chosen in the settings: click the app icon at the top of the settings window to show the **App icon** choice. It becomes the Dock icon while the app runs and is remembered. The icon of the app file itself (Finder) is set when building: `./build.sh` uses the penguin, `ICON=island ./build.sh` the alternative one.
+The default icon is a waving penguin. An alternative icon with the notch and a small player (the original design) can be chosen in the settings: click the app icon at the top of the settings window to open the **App icon** choice. It becomes the Dock icon while the app runs and is remembered. The icon of the app file itself (Finder) is set when building: `./build.sh` uses the penguin, `ICON=island ./build.sh` the alternative one.
 
 <p align="center">
   <picture>

@@ -9,7 +9,6 @@ struct CompactMusicContent: View {
         } right: {
             EqualizerView(active: model.isPlaying, tint: model.track?.tint ?? .white)
         }
-        .padding(.horizontal, -4)
     }
 }
 

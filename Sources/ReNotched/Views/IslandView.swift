@@ -20,7 +20,7 @@ struct IslandView: View {
     private func animation(for mode: IslandMode) -> Animation {
         if reduceMotion { return .easeInOut(duration: 0.2) }   // honour System Settings → Accessibility → Reduce Motion
         switch mode {
-        case .idle, .musicCompact, .volume: return Self.settle
+        case .idle, .musicCompact, .volume, .charging: return Self.settle
         default: return Self.bouncy
         }
     }
@@ -54,8 +54,8 @@ struct IslandView: View {
     private func content(for mode: IslandMode) -> some View {
         switch mode {
         case .idle: Color.clear
-        case .volume:
-            if case .charging? = model.transient { ChargingContent(model: model) } else { VolumeContent(model: model) }
+        case .volume: VolumeContent(model: model)
+        case .charging: ChargingContent(model: model)
         case .copied: CopiedContent(model: model)
         case .device: DeviceContent(model: model)
         case .focus: FocusContent(model: model)

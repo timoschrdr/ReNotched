@@ -23,9 +23,9 @@ struct VolumeContent: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.25))
                 Capsule().fill(.white)
-                    .frame(width: 42 * CGFloat(shown))
+                    .frame(width: 34 * CGFloat(shown))
             }
-            .frame(width: 42, height: 5)
+            .frame(width: 34, height: 5)
             .animation(.smooth(duration: 0.18), value: shown)
         }
     }
