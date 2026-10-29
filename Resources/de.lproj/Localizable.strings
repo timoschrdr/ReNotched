@@ -16,10 +16,10 @@
 "Content" = "Inhalt";
 "Confidential content" = "Vertraulicher Inhalt";
 "Focus" = "Fokus";
-"On" = "An";
+"On" = "Ein";
 "Off" = "Aus";
 "Needs Full Disk Access" = "Braucht Vollzugriff auf die Festplatte";
-"Open" = "Öffnen";
+"Allow" = "Erlauben";
 "Level and mute when you change it" = "Pegel und Stumm beim Ändern";
 "A preview of what you copy" = "Eine Vorschau auf das Kopierte";
 "Battery level when you plug in or unplug" = "Akkustand beim Anstecken und Abziehen";
@@ -27,4 +27,4 @@
 "App icon" = "App-Symbol";
 "Penguin" = "Pinguin";
 "Island" = "Insel";
-"Change the app icon" = "App-Symbol ändern";
+"Change Icon" = "Symbol ändern";

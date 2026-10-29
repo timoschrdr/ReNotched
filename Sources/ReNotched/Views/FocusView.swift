@@ -1,63 +1,51 @@
 import SwiftUI
 
-/// Focus turned on or off, shown around the notch: the mode's icon on the left, its state on the right.
-/// The island first shows the previous state, then switches over: turning on fills the icon with the mode's
-/// colour, lifts the slash and sends a ripple out; turning off drains the colour and draws the slash across.
+/// Focus turned on or off, like on the iPhone: the mode's icon on the left and "On" or "Off" on the right, both
+/// in the mode's colour when on and grey when off – no boxes, no slash.
+/// When the island appears, it shows the new state right away with a soft spring. If Focus changes again while
+/// the island is still showing it, the colour fades over and the word blurs from one state into the other.
 struct FocusContent: View {
     @ObservedObject var model: IslandModel
     @State private var appeared = false
-    @State private var shownOn: Bool?          // the state on screen; nil until the view appears
-    @State private var ripple = false
+    @State private var shownOn: Bool?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private static let off = Color(white: 0.55)
 
     var body: some View {
         let (symbol, tint, on): (String, Color, Bool) = {
             if case let .focus(s, t, o)? = model.transient { return (s, Self.color(named: t), o) }
             return ("moon.fill", .indigo, false)
         }()
-        let lit = shownOn ?? !on
+        let lit = shownOn ?? on
+        let color = lit ? tint : Self.off
 
         SideLayout(notchWidth: model.notch.width, height: model.notch.height) {
-            ZStack {
-                Circle().stroke(tint, lineWidth: 2)                       // ripple when Focus turns on
-                    .scaleEffect(ripple ? 2.4 : 0.8).opacity(ripple ? 0 : (lit ? 0.8 : 0))
-                Circle().fill(lit ? tint : Color.white.opacity(0.18))
-                    .shadow(color: lit ? tint.opacity(0.7) : .clear, radius: 7)
-                    .scaleEffect(appeared ? 1 : 0.3)
-                Image(systemName: symbol)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white.opacity(lit ? 1 : 0.55))
-                    .symbolEffect(.bounce, options: .nonRepeating, value: lit)
-                    .scaleEffect(appeared ? 1 : 0.2)
-                Slash().trim(from: 0, to: lit ? 0 : 1)                    // drawn across while off
-                    .stroke(.white.opacity(0.9), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                    .frame(width: 15, height: 15)
-            }
-            .frame(width: 26, height: 26)
+            Image(systemName: symbol)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(color)
+                .symbolEffect(.bounce, options: .nonRepeating, value: appeared)
+                .scaleEffect(appeared ? 1 : 0.4)
+                .opacity(appeared ? 1 : 0)
         } right: {
-            Text(lit ? "On" : "Off")
-                .font(.system(size: 12, weight: .semibold))
-                .contentTransition(.interpolate)
-                .padding(.horizontal, 10).padding(.vertical, 3)
-                .background(lit ? tint : Color.white.opacity(0.18), in: Capsule())
-                .foregroundStyle(.white)
-                .offset(x: appeared ? 0 : 16).opacity(appeared ? 1 : 0)
+            ZStack(alignment: .trailing) {
+                Text(lit ? "On" : "Off")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(color)
+                    .id(lit)
+                    .transition(.blurReplace)
+            }
+            .scaleEffect(appeared ? 1 : 0.6, anchor: .trailing)
+            .opacity(appeared ? 1 : 0)
         }
         .onAppear {
-            if reduceMotion { shownOn = on; appeared = true; return }
-            shownOn = !on                                             // start from the previous state
+            shownOn = on
+            if reduceMotion { appeared = true; return }
             withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) { appeared = true }
-            switchOver(to: on, after: 0.45)
         }
-        .onChange(of: on) { switchOver(to: on, after: 0) }        // toggled again while visible
-    }
-
-    private func switchOver(to on: Bool, after delay: Double) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) { shownOn = on }
-            guard on, !reduceMotion else { return }
-            ripple = false
-            withAnimation(.easeOut(duration: 0.7)) { ripple = true }
+        .onChange(of: on) {
+            // Focus toggled again while the island is still showing it: switch over in place
+            withAnimation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(response: 0.45, dampingFraction: 0.85)) { shownOn = on }
         }
     }
 
@@ -76,14 +64,5 @@ struct FocusContent: View {
         case "systemMintColor": .mint
         default: .indigo
         }
-    }
-}
-
-private struct Slash: Shape {
-    func path(in rect: CGRect) -> Path {
-        var p = Path()
-        p.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        return p
     }
 }

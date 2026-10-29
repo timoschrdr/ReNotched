@@ -34,7 +34,11 @@ private struct Row: View {
                 if let subtitle { Text(subtitle).font(.caption).foregroundStyle(.secondary) }
             }
             Spacer()
-            if let actionTitle, let action { Button(actionTitle, action: action).buttonStyle(.glass).controlSize(.small) }
+            if let actionTitle, let action {
+                Button(actionTitle, action: action)
+                    .buttonStyle(.glass).buttonBorderShape(.capsule).controlSize(.small)
+                    .tint(color)
+            }
             Toggle(title, isOn: $isOn).labelsHidden().toggleStyle(.switch).disabled(disabled)
         }
         .padding(.horizontal, 14).padding(.vertical, 9)
@@ -89,9 +93,11 @@ struct SettingsView: View {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showIconChoice.toggle() }
                 } label: {
                     Image(nsImage: (AppIconChoice(rawValue: appIcon) ?? .penguin).image(dark: scheme == .dark)).resizable().frame(width: 56, height: 56)
+                        .contentShape(Rectangle())
+                        .help("Change Icon")                  // the tooltip that appears after resting on the icon
                 }
                 .buttonStyle(.plain)
-                .help("Change the app icon")
+                .help("Change Icon")
                 VStack(alignment: .leading, spacing: 2) {
                     Text("ReNotched.").font(.title2.weight(.semibold))
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
@@ -108,7 +114,7 @@ struct SettingsView: View {
                 // The caption is always there, so the layout never changes when access is granted or missing.
                 // Greyed out until Full Disk Access is granted; the caption says why.
                 Row(symbol: "moon.fill", color: .indigo, title: "Focus", subtitle: "Needs Full Disk Access",
-                    actionTitle: focusReadable ? nil : "Open",
+                    actionTitle: focusReadable ? nil : "Allow",
                     action: { NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!) },
                     disabled: !focusReadable,
                     isOn: Binding(get: { focus && focusReadable }, set: { focus = $0 }))
