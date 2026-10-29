@@ -7,8 +7,9 @@ import SwiftUI
 struct SideLayout<L: View, R: View>: View {
     /// Space between the notch edge and the content.
     static var gap: CGFloat { 6 }
-    /// Space between the content and the island's outer edge.
-    static var outer: CGFloat { 11 }
+    /// Space between the content and the island's outer edge: the same as the space above and below a 16 pt symbol
+    /// in the compact island, so the content is inset evenly (concentric) and reaches right up to that margin.
+    static var outer: CGFloat { 9 }
 
     let notchWidth: CGFloat
     let height: CGFloat

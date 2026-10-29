@@ -60,7 +60,7 @@ final class IslandModel: ObservableObject {
         case .volume, .charging, .focus, .musicCompact: return CGSize(width: w + 2 * side, height: h)
         case .copied: return CGSize(width: w + 2 * side, height: h + 36)
         case .device: return CGSize(width: w + 2 * side, height: h + 32)
-        case .musicExpanded: return CGSize(width: max(w + 195, 380), height: 200)   // proportions of the MacBook Pro player
+        case .musicExpanded: return CGSize(width: max(w + 175, 360), height: h + 124)
         }
     }
 

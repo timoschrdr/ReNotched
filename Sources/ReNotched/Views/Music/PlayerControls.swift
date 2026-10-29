@@ -7,14 +7,14 @@ struct ProgressRow: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Text(format(position)).frame(width: 34, alignment: .leading)
+            Text(format(position)).frame(width: 32, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule().fill(.white.opacity(0.22))
-                    Capsule().fill(.white)                // white like Apple's player; the song colour stays in the equalizer
+                    Capsule().fill(.white.opacity(0.18))
+                    Capsule().fill(.white.opacity(0.6))    // grey like Apple's player; the song colour stays in the equalizer
                         .frame(width: geo.size.width * (duration > 0 ? CGFloat(min(position / duration, 1)) : 0))
                 }
-                .frame(height: 6).frame(maxHeight: .infinity)
+                .frame(height: 5).frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .gesture(DragGesture(minimumDistance: 0).onEnded { g in
                     guard duration > 0, geo.size.width > 0 else { return }
@@ -45,7 +45,7 @@ struct ControlButton: View {
             Image(systemName: symbol)
                 .font(.system(size: size, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(width: 46, height: 38)
+                .frame(width: 44, height: 34)
                 .contentShape(Rectangle())
         }
         .buttonStyle(PressStyle())
