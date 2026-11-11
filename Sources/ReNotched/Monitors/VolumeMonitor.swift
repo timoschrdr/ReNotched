@@ -67,7 +67,15 @@ final class VolumeMonitor {
         device = id
         ignoreUntil = Date().addingTimeInterval(1.5)
         let btName = Self.bluetoothName(of: id)
-        bluetoothSymbol = btName.flatMap(Self.headphoneSymbol(bluetoothName:))
+        bluetoothSymbol = nil
+        if let btName {
+            // Asking Bluetooth can take many seconds (the first time after an update macOS checks the app's
+            // permission), so it must not hold up the main thread.
+            DispatchQueue.global(qos: .utility).async { [weak self] in
+                let symbol = Self.headphoneSymbol(bluetoothName: btName)
+                DispatchQueue.main.async { if let self, self.device == id { self.bluetoothSymbol = symbol } }
+            }
+        }
         if switched, let btName { onBluetoothOutput?(btName) }
 
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in self?.check(announce: true) }

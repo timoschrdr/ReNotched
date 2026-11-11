@@ -30,8 +30,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             showSettings()
         }
-        connectMonitors()
         music.start()
+        connectMonitors()
         applyAppIcon()
         NotificationCenter.default.addObserver(forName: .appIconPreferenceChanged, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.applyAppIcon() }
@@ -88,7 +88,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         power.start()
 
         bluetooth.onConnect = { [weak self] name, battery, symbol in self?.show(Pref.device, .device(name: name, battery: battery, symbol: symbol), for: 3) }
-        bluetooth.start()
+        // Started after launch has finished: on the first start of a new version macOS asks for Bluetooth access,
+        // and the app waits for the answer. The window and the island should be up by then.
+        DispatchQueue.main.async { [bluetooth] in bluetooth.start() }
 
         var lastFocus = FocusMonitor.State(id: "", name: "", symbol: "moon.fill", tint: "systemIndigoColor")
         focus.onChange = { [weak self] state in
