@@ -81,6 +81,9 @@ struct SettingsView: View {
     @AppStorage(Pref.device) private var device = true
     @State private var login = SMAppService.mainApp.status == .enabled
 
+    /// Height of the transparent title bar with its toolbar buttons.
+    private static let titleBarHeight: CGFloat = 52
+
     init(focusAvailable: @escaping () -> Bool) {
         self.focusAvailable = focusAvailable
         _focusReadable = State(initialValue: focusAvailable())
@@ -113,7 +116,7 @@ struct SettingsView: View {
                     Text("Your notch as a Dynamic Island").foregroundStyle(.secondary)
                 }
             }
-            .padding(.top, 12)
+            .padding(.top, Self.titleBarHeight + 12)
 
             Text("Manage island animations").font(.headline).padding(.horizontal, 6).padding(.bottom, -8)
             VStack(spacing: 0) {
@@ -142,6 +145,9 @@ struct SettingsView: View {
         .padding(.horizontal, 20).padding(.bottom, 20)
         .frame(width: 400)
         .fixedSize(horizontal: false, vertical: true)   // the window fits its content; nothing in it changes height afterwards
+        // The room for the title bar is part of the content (see the top padding) rather than a safe area, which
+        // appears only after the toolbar has been added and would change the window's height.
+        .ignoresSafeArea(edges: .top)
         .onAppear { focusReadable = focusAvailable() }
         .onChange(of: focus) {
             focusReadable = focusAvailable()

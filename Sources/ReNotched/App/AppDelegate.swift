@@ -123,7 +123,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func showSettings() {
         NSApp.setActivationPolicy(.regular)   // Dock icon and menu bar while the window is open
         if settingsWindow == nil {
-            let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(focusAvailable: { [focus] in focus.isAvailable })))
+            let hosting = NSHostingController(rootView: SettingsView(focusAvailable: { [focus] in focus.isAvailable }))
+            let window = NSWindow(contentViewController: hosting)
+            // A fixed size from the content. The content reserves its own room for the title bar (see SettingsView),
+            // so its size does not depend on when the toolbar is added; SwiftUI no longer resizes the window later
+            // (it did so, by a different amount each time, when hovering a toolbar button).
+            hosting.sizingOptions = []
+            window.setContentSize(hosting.sizeThatFits(in: CGSize(width: 400, height: 2000)))
             window.title = "ReNotched."
             window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
             window.titlebarAppearsTransparent = true
