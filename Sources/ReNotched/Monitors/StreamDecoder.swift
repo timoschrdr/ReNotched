@@ -7,16 +7,19 @@ final class StreamDecoder {
     enum Artwork { case unchanged, cleared, updated(NSImage, Color) }
     struct Update { var track: Track?; var playing: Bool; var elapsed: Double; var stamp: Date; var rate: Double; var artwork: Artwork }
 
-    private var buffer = Data()
+    private var buffer = Data()   // always starts at index 0
     private var state: [String: Any] = [:]
     private var lastArtwork: String?
 
     func feed(_ data: Data) -> [Update] {
+        // A line with a cover is several megabytes and arrives in many pieces: only search the new bytes for its end
+        var searchFrom = buffer.count
         buffer.append(data)
         var out: [Update] = []
-        while let nl = buffer.firstIndex(of: 0x0A) {
+        while let nl = buffer[(buffer.startIndex + searchFrom)...].firstIndex(of: 0x0A) {
             let line = buffer[buffer.startIndex..<nl]
             buffer.removeSubrange(buffer.startIndex...nl)
+            searchFrom = 0
             guard let msg = try? JSONSerialization.jsonObject(with: line) as? [String: Any],
                   let payload = msg["payload"] as? [String: Any] else { continue }
             if !(msg["diff"] as? Bool ?? false) { state.removeAll(keepingCapacity: true) }
@@ -38,6 +41,9 @@ final class StreamDecoder {
         let rate = num("playbackRate").flatMap { $0 > 0 ? $0 : nil } ?? 1
         let stamp = num("timestampEpochMicros").map { Date(timeIntervalSince1970: $0 / 1e6) } ?? Date()
         let elapsed = max(0, num("elapsedTimeMicros").map { $0 / 1e6 } ?? num("elapsedTime") ?? 0)
+        guard elapsed.isFinite, track?.duration.isFinite ?? true else {   // never pass broken numbers to the views
+            return Update(track: nil, playing: false, elapsed: 0, stamp: stamp, rate: 1, artwork: .unchanged)
+        }
 
         var art = Artwork.unchanged
         let current = state["artworkData"] as? String

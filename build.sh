@@ -21,5 +21,6 @@ cp Resources/IslandIcon-light.png Resources/IslandIcon-dark.png "$APP/Contents/R
 cp Vendor/mediaremote-adapter.pl "$APP/Contents/Resources/"
 cp -R Vendor/MediaRemoteAdapter.framework "$APP/Contents/Resources/"
 cp Vendor/MediaRemoteAdapter.LICENSE "$APP/Contents/Resources/"
-codesign --force --deep --sign - "$APP"
+# Hardened runtime: other processes cannot inject code into the app to borrow its permissions (Full Disk Access)
+codesign --force --deep --options runtime --sign - "$APP"
 echo "Done: $APP"

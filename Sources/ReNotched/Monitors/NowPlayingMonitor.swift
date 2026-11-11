@@ -7,6 +7,11 @@ final class NowPlayingMonitor {
     private var process: Process?
     private var clearTask: Task<Void, Never>?
     private var stopped = false
+    private var started = Date.distantPast
+    private var restartDelay = 2.0
+    /// The helper runs with this app's permissions, so it gets a fixed environment instead of inheriting one:
+    /// variables such as PERL5OPT or PERL5LIB could otherwise make perl load foreign code.
+    private static let environment = ["PATH": "/usr/bin:/bin"]
     private let adapter: (script: String, framework: String)? = {
         guard let r = Bundle.main.resourceURL else { return nil }
         let s = r.appending(path: "mediaremote-adapter.pl").path
@@ -22,6 +27,7 @@ final class NowPlayingMonitor {
         let task = Process()
         task.executableURL = URL(filePath: "/usr/bin/perl")
         task.arguments = [adapter.script, adapter.framework, "stream", "--micros", "--debounce=180"]
+        task.environment = Self.environment
         let pipe = Pipe()
         task.standardOutput = pipe
         task.standardError = FileHandle.nullDevice
@@ -35,15 +41,21 @@ final class NowPlayingMonitor {
             DispatchQueue.main.async { MainActor.assumeIsolated { updates.forEach { self?.apply($0) } } }
         }
         task.terminationHandler = { [weak self] _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.main.async {
                 MainActor.assumeIsolated {
                     guard let self else { return }
                     self.process = nil
-                    if !self.stopped { self.start() }
+                    // Restart after 2 s; if the helper keeps dying right away, wait longer each time (up to 2 min)
+                    // instead of starting a process every two seconds forever.
+                    let ranWell = Date().timeIntervalSince(self.started) > 30
+                    self.restartDelay = ranWell ? 2 : min(self.restartDelay * 2, 120)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + self.restartDelay) { [weak self] in
+                        MainActor.assumeIsolated { if let self, !self.stopped { self.start() } }
+                    }
                 }
             }
         }
-        do { try task.run(); process = task } catch { NSLog("Adapter: \(error)") }
+        do { try task.run(); process = task; started = Date() } catch { NSLog("Adapter: \(error)") }
     }
 
     func stop() { stopped = true; process?.terminate() }
@@ -87,6 +99,7 @@ final class NowPlayingMonitor {
         let task = Process()
         task.executableURL = URL(filePath: "/usr/bin/perl")
         task.arguments = [adapter.script, adapter.framework] + args
+        task.environment = Self.environment
         task.standardOutput = FileHandle.nullDevice
         task.standardError = FileHandle.nullDevice
         try? task.run()
@@ -102,6 +115,7 @@ final class NowPlayingMonitor {
     func previous() { run(["send", "5"]) }
 
     func seek(to seconds: Double) {
+        guard seconds.isFinite, seconds >= 0, seconds < 1e7 else { return }
         model.position = seconds
         model.positionDate = Date()
         run(["seek", String(Int(seconds * 1e6))])

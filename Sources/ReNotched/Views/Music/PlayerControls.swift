@@ -30,6 +30,7 @@ struct ProgressRow: View {
     }
 
     private func format(_ s: Double) -> String {
+        guard s.isFinite, s >= 0, s < 1e7 else { return "0:00" }
         let t = Int(s.rounded(.down))
         return String(format: "%d:%02d", t / 60, t % 60)
     }

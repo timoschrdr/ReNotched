@@ -95,6 +95,13 @@ final class VolumeMonitor {
     /// Bluetooth speakers such as a HomePod or Sonos are not headphones and keep the speaker symbol.
     private func headphoneSymbol() -> String? {
         if let bluetoothSymbol { return bluetoothSymbol }
+        // Macs with Apple silicon list the headphone jack as an output device of its own
+        var uid: Unmanaged<CFString>?
+        var usize = UInt32(MemoryLayout<Unmanaged<CFString>?>.size)
+        var u = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceUID,
+                                           mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
+        if AudioObjectGetPropertyData(device, &u, 0, nil, &usize, &uid) == noErr,
+           (uid?.takeRetainedValue() as String?) == "BuiltInHeadphoneOutputDevice" { return HeadphoneSymbol.generic }
         var source: UInt32 = 0
         var size = UInt32(MemoryLayout<UInt32>.size)
         var a = Self.address(kAudioDevicePropertyDataSource)
