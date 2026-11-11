@@ -23,69 +23,37 @@ struct ArtworkView: View {
 }
 
 struct CoverMorph: ViewModifier {
-    var blur: CGFloat, opacity: Double, scale: CGFloat, angle: Double
+    var blur: CGFloat, opacity: Double, scale: CGFloat
     func body(content: Content) -> some View {
         content.blur(radius: blur).opacity(opacity).scaleEffect(scale)
-            .rotation3DEffect(.degrees(angle), axis: (x: 0, y: 1, z: 0), perspective: 0.6)
     }
 }
 
 extension AnyTransition {
-    /// The new cover grows out of nothing while the old one dissolves (like Shazam / Dynamic Island).
-    /// `grow` is how much the old cover may swell while it fades; in the compact island there is no room at all,
-    /// as the cover sits right against the notch, so it shrinks away instead and nothing reaches into the notch.
-    static func cover(grow: CGFloat, turn: Double) -> AnyTransition {
+    /// A soft crossfade like Apple's player: the new cover fades in from slightly smaller while the old one fades
+    /// out in place. Nothing grows, so the cover never reaches into the notch.
+    static var cover: AnyTransition {
         .asymmetric(
-            insertion: .modifier(active: CoverMorph(blur: 10, opacity: 0, scale: 0.3, angle: -turn), identity: CoverMorph(blur: 0, opacity: 1, scale: 1, angle: 0)),
-            removal: .modifier(active: CoverMorph(blur: 10, opacity: 0, scale: grow, angle: turn), identity: CoverMorph(blur: 0, opacity: 1, scale: 1, angle: 0)))
+            insertion: .modifier(active: CoverMorph(blur: 6, opacity: 0, scale: 0.88), identity: CoverMorph(blur: 0, opacity: 1, scale: 1)),
+            removal: .modifier(active: CoverMorph(blur: 6, opacity: 0, scale: 1), identity: CoverMorph(blur: 0, opacity: 1, scale: 1)))
     }
 }
 
-struct Ripple: View {
-    let trigger: Int
-    let tint: Color
-    let size: CGFloat
-    let reach: CGFloat   // final scale of the ring
-    @State private var run = false
-
-    var body: some View {
-        Circle().strokeBorder(tint, lineWidth: 2)
-            .frame(width: size, height: size)
-            .scaleEffect(run ? reach : 0.6)
-            .opacity(run ? 0 : 0.9)
-            .onChange(of: trigger) {
-                run = false
-                withAnimation(.easeOut(duration: 0.8)) { run = true }
-            }
-            .allowsHitTesting(false)
-    }
-}
-
-/// Cover that is replaced with a transition when its `id` changes. Every effect stays inside the island:
-/// the compact cover touches the notch, so it only shrinks and fades; the expanded one has its margin to grow into.
+/// Cover that crossfades to the new one when its `id` changes.
 struct CoverSlot: View {
     @ObservedObject var model: IslandModel
     let size: CGFloat
     let radius: CGFloat
 
-    private var compact: Bool { size < 30 }
-
     var body: some View {
-        let tint = model.track?.tint ?? .white
         ZStack {
-            // Coloured ripple emanating from the cover when a new one appears (like Shazam recognition),
-            // reaching no further than the margin (it would otherwise run into the notch)
-            if !compact {
-                Ripple(trigger: model.track?.artID ?? 0, tint: tint, size: size,
-                       reach: 1 + ExpandedMusicContent.margin * 1.5 / size)
-            }
             ArtworkView(image: model.track?.artwork, size: size, radius: radius)
                 .id(model.track?.artID ?? 0)
-                .transition(compact ? .cover(grow: 0.4, turn: 0) : .cover(grow: 1.2, turn: 60))
+                .transition(.cover)
                 .scaleEffect(model.isPlaying ? 1 : 0.78)   // shrinks while paused, like the real Dynamic Island
                 .animation(.spring(response: 0.4, dampingFraction: 0.65), value: model.isPlaying)
         }
         .frame(width: size, height: size)
-        .animation(.spring(response: 0.6, dampingFraction: 0.58), value: model.track?.artID)
+        .animation(.easeInOut(duration: 0.45), value: model.track?.artID)
     }
 }
