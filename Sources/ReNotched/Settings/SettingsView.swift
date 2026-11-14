@@ -45,6 +45,28 @@ private struct Row: View {
     }
 }
 
+/// The installed version and a button that opens the latest release on GitHub in the browser. The app itself
+/// makes no network connection; comparing the version numbers is left to the user.
+private struct UpdateRow: View {
+    static let releases = URL(string: "https://github.com/timoschrdr/ReNotched/releases/latest")!
+    private let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
+
+    var body: some View {
+        HStack(spacing: 12) {
+            SettingsIcon(symbol: "arrow.down", color: .blue)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Updates")
+                Text("Version \(version)").font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button("Check for Updates") { NSWorkspace.shared.open(Self.releases) }
+                .buttonStyle(.glass).buttonBorderShape(.capsule).controlSize(.small)
+                .help("Opens the latest release on GitHub")
+        }
+        .padding(.horizontal, 14).padding(.vertical, 9)
+    }
+}
+
 private struct IconTile: View {
     let choice: AppIconChoice
     let selected: Bool
@@ -134,12 +156,15 @@ struct SettingsView: View {
             }
             .padding(.vertical, 4).card()
 
-            Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
-                .card()
-                .onChange(of: login) { _, on in
-                    do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
-                    catch { login = SMAppService.mainApp.status == .enabled }
-                }
+            VStack(spacing: 0) {
+                Row(symbol: "power", color: .gray, title: "Launch at login", isOn: $login)
+                    .onChange(of: login) { _, on in
+                        do { if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() } }
+                        catch { login = SMAppService.mainApp.status == .enabled }
+                    }
+                UpdateRow()
+            }
+            .padding(.vertical, 4).card()
 
         }
         .padding(.horizontal, 20).padding(.bottom, 20)

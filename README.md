@@ -28,7 +28,7 @@ The app is available in English and German and picks the language from your syst
 
 The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
 
-Each indicator can be switched off in the app's settings window, which is also where you quit the app and enable **Launch at login**.
+Each indicator can be switched off in the app's settings window, which is also where you quit the app and enable **Launch at login**. **Check for Updates** opens the latest release on GitHub in your browser; the window shows the installed version next to it.
 
 ## How it works
 

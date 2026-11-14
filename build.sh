@@ -13,7 +13,8 @@ cp Info.plist "$APP/Contents/Info.plist"
 # ICON=island ./build.sh builds with the alternative island icon (the default is the penguin)
 ICON_DIR=$(mktemp -d)
 cp -R "Resources/$([ "${ICON:-}" = "island" ] && echo AppIconIsland || echo AppIcon).icon" "$ICON_DIR/AppIcon.icon"
-xcrun actool "$ICON_DIR/AppIcon.icon" --compile "$APP/Contents/Resources" --platform macosx \
+# absolute path: actool runs as a shared service whose working directory can be another project's
+xcrun actool "$ICON_DIR/AppIcon.icon" --compile "$PWD/$APP/Contents/Resources" --platform macosx \
   --minimum-deployment-target 26.0 --app-icon AppIcon --output-partial-info-plist /dev/null > /dev/null
 rm -rf "$ICON_DIR"
 cp -R Resources/de.lproj "$APP/Contents/Resources/"
