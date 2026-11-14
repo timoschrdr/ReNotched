@@ -59,7 +59,13 @@ private struct UpdateRow: View {
                 Text("Version \(version)").font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            Button("Check for Updates") { NSWorkspace.shared.open(Self.releases) }
+            // The arrow pointing up and out marks a link that opens in the browser, as in Apple's own apps
+            Button { NSWorkspace.shared.open(Self.releases) } label: {
+                HStack(spacing: 3) {
+                    Text("Check for Updates")
+                    Image(systemName: "arrow.up.right").font(.caption2.weight(.semibold))
+                }
+            }
                 .buttonStyle(.glass).buttonBorderShape(.capsule).controlSize(.small)
                 .help("Opens the latest release on GitHub")
         }
