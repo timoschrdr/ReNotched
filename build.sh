@@ -32,4 +32,5 @@ else
 fi
 # Hardened runtime: other processes cannot inject code into the app to borrow its permissions (Full Disk Access)
 codesign --force --deep --options runtime --sign "$SIGN" "$APP"
-echo "Done: $APP (signed with ${SIGN/-/ad hoc signature})"
+[ "$SIGN" = "-" ] && SIGNED="ad hoc" || SIGNED="\"$SIGN\""
+echo "Done: $APP (signed $SIGNED)"
