@@ -21,6 +21,15 @@ cp Resources/IslandIcon-light.png Resources/IslandIcon-dark.png "$APP/Contents/R
 cp Vendor/mediaremote-adapter.pl "$APP/Contents/Resources/"
 cp -R Vendor/MediaRemoteAdapter.framework "$APP/Contents/Resources/"
 cp Vendor/MediaRemoteAdapter.LICENSE "$APP/Contents/Resources/"
+# Signed with the self-signed certificate from Tools/make-signing-identity.sh if it exists, so the app keeps one
+# identity and its permissions (Bluetooth, Full Disk Access) across updates; otherwise ad hoc.
+IDENTITY="ReNotched Self-Signed"
+if security find-identity -p codesigning | grep -q "\"$IDENTITY\""; then
+  SIGN="$IDENTITY"
+else
+  SIGN="-"
+  echo "Note: signing ad hoc. Run ./Tools/make-signing-identity.sh once so updates keep their permissions."
+fi
 # Hardened runtime: other processes cannot inject code into the app to borrow its permissions (Full Disk Access)
-codesign --force --deep --options runtime --sign - "$APP"
-echo "Done: $APP"
+codesign --force --deep --options runtime --sign "$SIGN" "$APP"
+echo "Done: $APP (signed with ${SIGN/-/ad hoc signature})"

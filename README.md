@@ -14,17 +14,17 @@ ReNotched. is deliberately simple. It sticks closely to Apple's design guideline
 The app is available in English and German and picks the language from your system settings.
 
 <p align="center">
-  <img src="docs/screenshot.png" width="720" alt="The island showing the player, volume, Focus, headphones, charger and copy animations over a neutral backdrop">
+  <img src="docs/screenshot.png" width="720" alt="The island showing the player, volume, Focus, AirPods, charger and copy animations over a neutral backdrop">
 </p>
 
 ## What it shows
 
-- **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys, AirPods and mute, and when you press volume down at 0)
+- **Volume** – a speaker icon that follows the level, with a level bar next to the notch (also for the volume keys and mute, and when you press volume down at 0). With headphones connected, their symbol replaces the speaker – for AirPods and Beats the exact model
 - **Copying** – "Copied" with a preview of the text, file or image. Content marked as confidential by password managers is never previewed
-- **Charger** – the battery as macOS shows it, filled to the exact level and with a bolt while charging, when you plug in or unplug the charger
+- **Charger** – the battery as macOS shows it, filled to the exact level and with a bolt while charging, when you plug in or unplug the charger. Like on the iPhone it is green while charging, yellow in Low Power Mode and red at 20 % or less
 - **Focus** – the mode's icon and "On" or "Off" in the mode's colour (grey when off) when a Focus mode turns on or off, like on the iPhone. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
-- **Headphones** – connecting Bluetooth headphones shows their name and, if the device reports it, the battery level
-- **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer takes the colour of the album cover and a new cover animates in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
+- **Headphones** – connecting Bluetooth headphones shows their name, their symbol (for AirPods and Beats the exact model, even if you renamed them) and, if the device reports it, the battery level as a ring
+- **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer takes the colour of the album cover and a new cover crossfades in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
 
 The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
 
@@ -37,7 +37,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 - **Volume** is observed through Core Audio property listeners; the volume keys are watched as well, so pressing them at 0 or at the maximum still shows the island.
 - **Copying** is detected by watching the pasteboard change counter twice a second (macOS has no notification for it).
 - **Charger** uses IOKit power-source notifications, so there is no polling.
-- **Headphones** use IOBluetooth connect notifications.
+- **Headphones** use IOBluetooth connect notifications. The AirPods or Beats model comes from the device's Bluetooth product ID.
 - **Focus** reads the Focus database in `~/Library/DoNotDisturb/DB` (read-only, change-triggered), which only works once you grant the app Full Disk Access in System Settings.
 - **Fullscreen:** the panel lives on one desktop space rather than on all spaces, so a fullscreen space never shows it. After a space change it is moved to the new desktop, unless that space is a fullscreen one. That check is a read-only query of the active space type (a private CoreGraphics call used only for this).
 - **Now playing** is read with the third-party [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because Apple restricted the private MediaRemote interface for regular apps in macOS 15.4. It runs as one long-lived helper process that only reports changes.
@@ -52,7 +52,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 
 1. Download the latest `ReNotched-<version>.zip` from the [Releases](../../releases) page and unzip it.
 2. Move `ReNotched..app` to your Applications folder. The file name ends in a dot on purpose, so Finder and the Dock show "ReNotched."
-3. The app is signed locally (ad hoc) and not notarized by Apple, because that needs a paid developer account. The first start is therefore blocked: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/ReNotched..app` in Terminal. You only have to do this once.
+3. The app is signed with a self-signed certificate and not notarized by Apple, because that needs a paid developer account. The first start is therefore blocked: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**, or run `xattr -dr com.apple.quarantine /Applications/ReNotched..app` in Terminal. You only have to do this once. Thanks to the certificate, updates keep the app's permissions (Bluetooth, Full Disk Access); releases up to 1.0.4 were signed ad hoc, so after updating from one of them macOS asks once more.
 
 Release builds are for Apple silicon, which all MacBooks with a notch use.
 
@@ -62,7 +62,7 @@ Release builds are for Apple silicon, which all MacBooks with a notch use.
 ./build.sh && open build/ReNotched..app
 ```
 
-The build script compiles the Swift package, assembles the app bundle and signs it locally (ad hoc), so no Apple Developer account is needed. To use it every day, drag `build/ReNotched..app` to your Applications folder. The file name ends in a dot on purpose, so Finder and the Dock show the name "ReNotched."
+The build script compiles the Swift package, assembles the app bundle and signs it locally, so no Apple Developer account is needed. It signs ad hoc unless you create a free self-signed certificate once with `./Tools/make-signing-identity.sh`: then every build has the same identity and macOS keeps the app's permissions across rebuilds and updates. To use it every day, drag `build/ReNotched..app` to your Applications folder. The file name ends in a dot on purpose, so Finder and the Dock show the name "ReNotched."
 
 If you want to ship your own build, change the bundle identifier (`com.renotched.ReNotched`) in `Info.plist` and sign with your own team.
 
@@ -78,6 +78,7 @@ Sources/ReNotched/
   Settings/                  settings window and preferences
 Vendor/                      mediaremote-adapter (BSD-3)
 Resources/                   app icons (Icon Composer format; penguin default, island alternative) and German strings
+Tools/                       scripts for the icons, the README images and the signing certificate
 ```
 
 ## Usage
@@ -102,7 +103,7 @@ The default icon is a waving penguin. An alternative icon with the notch and a s
   </picture>
 </p>
 
-Both icons follow the system's light and dark appearance. The penguin illustration was generated with an AI image tool (ChatGPT). The artwork comes from `Tools/penguin-source.png`, which `swift Tools/make-penguin-layer.swift` cuts out and places on the icon canvas, and from `swift Tools/make-icon.swift` for the alternative. The README images with the Liquid Glass look come from `Tools/make-icon-previews.sh` (Icon Composer's `ictool`), the social preview from `swift Tools/make-social-preview.swift`.
+Both icons follow the system's light and dark appearance. The penguin illustration was generated with an AI image tool (ChatGPT). The artwork comes from `Tools/penguin-source.png`, which `swift Tools/make-penguin-layer.swift` cuts out and places on the icon canvas, and from `swift Tools/make-icon.swift` for the alternative. The README images with the Liquid Glass look come from `Tools/make-icon-previews.sh` (Icon Composer's `ictool`), the social preview from `swift Tools/make-social-preview.swift` and the screenshot above from `Tools/make-screenshot.sh`, which renders the app's real views with made-up content.
 
 ## Privacy
 

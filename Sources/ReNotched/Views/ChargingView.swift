@@ -7,7 +7,11 @@ import SwiftUI
 struct ChargingContent: View {
     @ObservedObject var model: IslandModel
     @State private var appeared = false
-    @State private var lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+    @State private var lowPower = Self.isLowPower
+
+    /// Set by Tools/Screenshot so the README image does not depend on the Mac's Low Power Mode.
+    nonisolated(unsafe) static var lowPowerOverride: Bool?
+    private static var isLowPower: Bool { lowPowerOverride ?? ProcessInfo.processInfo.isLowPowerModeEnabled }
 
     var body: some View {
         let (percent, plugged): (Int, Bool) = {
@@ -27,7 +31,7 @@ struct ChargingContent: View {
         .onAppear { withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) { appeared = true } }
         // Low Power Mode often switches on just after the charger is removed, so the colour follows it live
         .onReceive(NotificationCenter.default.publisher(for: .NSProcessInfoPowerStateDidChange).receive(on: RunLoop.main)) { _ in
-            lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+            lowPower = Self.isLowPower
         }
     }
 }
