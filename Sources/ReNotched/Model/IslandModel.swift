@@ -5,7 +5,7 @@ enum Transient: Equatable {
     case volume(level: Float, muted: Bool, symbol: String?)   // symbol: headphones, if connected
     case copied(preview: String, symbol: String)
     case charging(percent: Int, plugged: Bool)
-    case device(name: String, battery: Int?, symbol: String)
+    case device(name: String, battery: Int?, symbol: String, image: String? = nil)   // image: file of the model's picture
     case focus(symbol: String, tint: String, on: Bool)
 }
 
@@ -44,7 +44,7 @@ final class IslandModel: ObservableObject {
         case .volume: 34            // level bar (the speaker on the left is narrower)
         case .charging: 40          // "100%"
         case .copied: 64            // "Copied" and the check mark
-        case .device: 28            // battery ring
+        case .device: 36            // battery ring, centred with room to the notch
         case .focus: 28             // "Off" (the wider of the two words)
         case .musicCompact: 22      // cover
         case .idle, .musicExpanded: 0

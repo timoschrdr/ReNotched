@@ -23,7 +23,7 @@ The app is available in English and German and picks the language from your syst
 - **Copying** – "Copied" with a preview of the text, file or image. Content marked as confidential by password managers is never previewed
 - **Charger** – the battery as macOS shows it, filled to the exact level and with a bolt while charging, when you plug in or unplug the charger. Like on the iPhone it is green while charging, yellow in Low Power Mode and red at 20 % or less
 - **Focus** – the mode's icon and "On" or "Off" in the mode's colour (grey when off) when a Focus mode turns on or off, like on the iPhone. This is optional and off by default, because macOS only lets an app read the Focus state with Full Disk Access (see Privacy)
-- **Headphones** – connecting Bluetooth headphones shows their name, their symbol (for AirPods and Beats the exact model, even if you renamed them) and, if the device reports it, the battery level as a ring
+- **Headphones & mouse** – connecting Bluetooth headphones or a mouse shows the name, the device (for AirPods, Beats and the Magic Mouse Apple's own picture of the exact model – for the Magic Mouse in its colour – read from macOS at runtime, even if you renamed them; otherwise its symbol) and, if the device reports it, the battery level as a ring
 - **Now playing** – cover, title, progress and controls for whatever plays on your Mac (Music, Spotify, browsers, …). The equalizer takes the colour of the album cover and a new cover crossfades in. Click the island to expand it and click anywhere else to close it. When you pause, the cover shrinks and the island closes completely after 30 seconds
 
 The island appears on the built-in display only, never on external monitors, and it slides away with the desktop when an app enters fullscreen and comes back when you leave it.
@@ -37,7 +37,7 @@ ReNotched. is a SwiftUI and AppKit app that draws a borderless, click-through pa
 - **Volume** is observed through Core Audio property listeners; the volume keys are watched as well, so pressing them at 0 or at the maximum still shows the island.
 - **Copying** is detected by watching the pasteboard change counter twice a second (macOS has no notification for it).
 - **Charger** uses IOKit power-source notifications, so there is no polling.
-- **Headphones** use IOBluetooth connect notifications. The AirPods or Beats model comes from the device's Bluetooth product ID.
+- **Headphones & mouse** use IOBluetooth connect notifications. The model comes from the device's Bluetooth product ID; its picture from the product-ID map macOS keeps in CoreBluetoothUI (nothing of Apple's ships with the app). A mouse's battery comes from its HID service in the I/O Registry. Mice that reconnect after sleep are not shown.
 - **Focus** reads the Focus database in `~/Library/DoNotDisturb/DB` (read-only, change-triggered), which only works once you grant the app Full Disk Access in System Settings.
 - **Fullscreen:** the panel lives on one desktop space rather than on all spaces, so a fullscreen space never shows it. After a space change it is moved to the new desktop, unless that space is a fullscreen one. That check is a read-only query of the active space type (a private CoreGraphics call used only for this).
 - **Now playing** is read with the third-party [mediaremote-adapter](https://github.com/ungive/mediaremote-adapter), because Apple restricted the private MediaRemote interface for regular apps in macOS 15.4. It runs as one long-lived helper process that only reports changes.
@@ -84,7 +84,7 @@ Tools/                       scripts for the icons, the README images and the si
 ## Usage
 
 1. Open the app once. Its settings window lets you choose which indicators you want. Closing that window leaves the app running in the background without a Dock icon. To open the settings again (or to quit with the power button in the window), open the app a second time from Finder or Spotlight.
-2. macOS asks for **Bluetooth** access. This is only used to notice when headphones connect. Without it, the headphone indicator stays off.
+2. macOS asks for **Bluetooth** access. This is only used to notice when headphones or a mouse connect. Without it, the headphone indicator stays off.
 3. Play music, change the volume or copy something – the island reacts on its own. Click the island while music is playing to open the player.
 
 ## App icon
@@ -112,7 +112,7 @@ ReNotched. does not collect, store or send any personal data. It has no accounts
 - **Clipboard:** the copied text, file name or image type is read only to show the preview on the island. It is kept in memory for a moment and never saved.
 - **Now playing:** title, artist, cover and progress come from macOS and are shown locally only.
 - **Focus (optional):** if you enable it and grant Full Disk Access, the app reads the name of the active Focus mode from the system's Focus database, only to show it. It reads nothing else in that folder and never stores or sends it. Leave it off and no access is needed.
-- **Bluetooth:** device names and battery levels are read only to show them when headphones connect.
+- **Bluetooth:** device names and battery levels are read only to show them when headphones or a mouse connect.
 - **Stored on your Mac:** only your on/off choices in the app's preferences. Delete the preferences to remove them.
 
 ## Legal

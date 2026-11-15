@@ -2,25 +2,32 @@ import SwiftUI
 
 // MARK: - Headphones connected
 
-/// The headphones' symbol (the AirPods model, if known), the name below and the battery as a ring.
+/// Headphones or a mouse: Apple's picture of the model where the Mac has one, otherwise its symbol; the name below and
+/// the battery as a ring.
 
 struct DeviceContent: View {
     @ObservedObject var model: IslandModel
     @State private var appeared = false
 
     var body: some View {
-        let (name, battery, symbol): (String, Int?, String) = {
-            if case let .device(n, b, s)? = model.transient { return (n, b, s) }
-            return ("", nil, HeadphoneSymbol.generic)
+        let (name, battery, symbol, picture): (String, Int?, String, NSImage?) = {
+            if case let .device(n, b, s, i)? = model.transient { return (n, b, s, i.flatMap(DeviceImage.image)) }
+            return ("", nil, HeadphoneSymbol.generic, nil)
         }()
         let level = Double(battery ?? 0) / 100
 
         VStack(spacing: 0) {
-            SideLayout(notchWidth: model.notch.width, height: model.notch.height) {
-                Image(systemName: symbol)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .symbolEffect(.bounce, options: .nonRepeating, value: appeared)
+            SideLayout(notchWidth: model.notch.width, height: model.notch.height, leftAlignment: .center, rightAlignment: .center) {
+                if let picture {
+                    Image(nsImage: picture).resizable().interpolation(.high).scaledToFit()
+                        .frame(width: 26, height: 26)
+                        .scaleEffect(appeared ? 1 : 0.6).opacity(appeared ? 1 : 0)
+                } else {
+                    Image(systemName: symbol)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .symbolEffect(.bounce, options: .nonRepeating, value: appeared)
+                }
             } right: {
                 if let battery {
                     BatteryRing(percent: battery, level: appeared ? level : 0)
@@ -54,7 +61,7 @@ struct BatteryRing: View {
                 .minimumScaleFactor(0.7).lineLimit(1)
                 .foregroundStyle(.white)
         }
-        .frame(width: 28, height: 28)
+        .frame(width: 26, height: 26)
         .animation(.spring(response: 0.9, dampingFraction: 0.85), value: level)
         .animation(.easeInOut(duration: 0.3), value: color)
     }

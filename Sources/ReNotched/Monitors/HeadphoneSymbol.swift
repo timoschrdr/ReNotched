@@ -20,13 +20,15 @@ enum HeadphoneSymbol {
         0x2012: "beats.fitpro",
     ]
 
+    /// The Bluetooth product ID of an Apple or Beats device.
+    static func appleProductID(of device: IOBluetoothDevice?) -> UInt16? {
+        guard let device, device.responds(to: Selector(("vendorID"))), device.responds(to: Selector(("productID"))),
+              (device.value(forKey: "vendorID") as? NSNumber)?.uint16Value == apple else { return nil }
+        return (device.value(forKey: "productID") as? NSNumber)?.uint16Value
+    }
+
     static func symbol(for device: IOBluetoothDevice?, name: String) -> String {
-        if let device, device.responds(to: Selector(("vendorID"))), device.responds(to: Selector(("productID"))),
-           (device.value(forKey: "vendorID") as? NSNumber)?.uint16Value == apple,
-           let pid = (device.value(forKey: "productID") as? NSNumber)?.uint16Value,
-           let symbol = byProduct[pid] {
-            return symbol
-        }
+        if let pid = appleProductID(of: device), let symbol = byProduct[pid] { return symbol }
         let n = name.lowercased()
         if n.contains("airpods max") { return "airpods.max" }
         if n.contains("airpods pro") { return "airpods.pro" }

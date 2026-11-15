@@ -87,7 +87,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         power.onChange = { [weak self] percent, plugged in self?.show(Pref.power, .charging(percent: percent, plugged: plugged), for: 2.2) }
         power.start()
 
-        bluetooth.onConnect = { [weak self] name, battery, symbol in self?.show(Pref.device, .device(name: name, battery: battery, symbol: symbol), for: 3) }
+        bluetooth.onConnect = { [weak self] name, battery, symbol, image in
+            self?.show(Pref.device, .device(name: name, battery: battery, symbol: symbol, image: image), for: 3)
+        }
         // Started after launch has finished: on the first start of a new version macOS asks for Bluetooth access,
         // and the app waits for the answer. The window and the island should be up by then.
         DispatchQueue.main.async { [bluetooth] in bluetooth.start() }

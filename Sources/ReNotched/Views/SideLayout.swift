@@ -16,6 +16,7 @@ struct SideLayout<L: View, R: View>: View {
     let notchWidth: CGFloat
     let height: CGFloat
     var leftAlignment: Alignment = .trailing
+    var rightAlignment: Alignment = .leading
     @ViewBuilder var left: L
     @ViewBuilder var right: R
 
@@ -23,7 +24,7 @@ struct SideLayout<L: View, R: View>: View {
         HStack(spacing: 0) {
             left.frame(maxWidth: .infinity, alignment: leftAlignment)
             Color.clear.frame(width: notchWidth + 2 * Self.gap)
-            right.frame(maxWidth: .infinity, alignment: .leading)
+            right.frame(maxWidth: .infinity, alignment: rightAlignment)
         }
         .padding(.horizontal, Self.outer)
         .frame(height: height)

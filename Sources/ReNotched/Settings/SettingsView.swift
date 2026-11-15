@@ -151,7 +151,7 @@ struct SettingsView: View {
                 Row(symbol: "speaker.wave.2.fill", color: .blue, title: "Volume", subtitle: "Level and mute when you change it", isOn: $volume)
                 Row(symbol: "doc.on.doc.fill", color: .orange, title: "Copying", subtitle: "A preview of what you copy", isOn: $copy)
                 Row(symbol: "bolt.fill", color: .green, title: "Charger", subtitle: "Battery level when you plug in or unplug", isOn: $power)
-                Row(symbol: "headphones", color: .purple, title: "Headphones", subtitle: "Name and battery when they connect", isOn: $device)
+                Row(symbol: "headphones", color: .purple, title: "Headphones & Mouse", subtitle: "Name and battery when they connect", isOn: $device)
                 // The caption is always there, so the layout never changes when access is granted or missing.
                 // Greyed out until Full Disk Access is granted; the caption says why.
                 Row(symbol: "moon.fill", color: .indigo, title: "Focus", subtitle: "Needs Full Disk Access",
