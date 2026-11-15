@@ -42,13 +42,13 @@ struct DeviceContent: View {
     }
 }
 
-/// Ring that fills with the charge, with the percentage in the middle. Green like Apple's battery widget,
+/// Ring that fills with the charge, with the percentage in the middle. Apple's charging green like its battery widget,
 /// red at 20 % or less.
 struct BatteryRing: View {
     let percent: Int
     let level: Double   // animated 0…1 fill
 
-    private var color: Color { percent <= 20 ? .red : .green }
+    private var color: Color { percent <= 20 ? .red : .charging }
 
     var body: some View {
         ZStack {

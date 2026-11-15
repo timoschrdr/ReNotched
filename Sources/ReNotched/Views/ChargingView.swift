@@ -36,10 +36,16 @@ struct ChargingContent: View {
     }
 }
 
+extension Color {
+    /// Apple's charging green, the systemGreen of dark mode (#30D158) that the iPhone's battery and the AirPods
+    /// battery widget use. Fixed, so it does not turn darker when the island is drawn in light mode.
+    static let charging = Color(red: 0x30 / 255, green: 0xD1 / 255, blue: 0x58 / 255)
+}
+
 /// The battery exactly as macOS draws it in the menu bar, from SF Symbols (`battery.100percent`, with `.bolt`
 /// while charging). The symbol has no level of its own, so it is drawn twice: translucent for the empty part and
 /// solid, masked to the exact charge, for the charged part. Coloured like on the iPhone: yellow in Low Power Mode,
-/// green while charging, red at 20 % or less on battery, otherwise white.
+/// green while charging, red at 20 % or less on battery, otherwise white. The bolt is always white.
 struct BatteryGlyph: View {
     let level: Double
     let charging: Bool
@@ -49,14 +55,15 @@ struct BatteryGlyph: View {
     private var symbol: String { charging ? "battery.100percent.bolt" : "battery.100percent" }
 
     static func color(percent: Int, charging: Bool, lowPower: Bool) -> Color {
-        lowPower ? .yellow : charging ? .green : percent <= 20 ? .red : .white
+        lowPower ? .yellow : charging ? .charging : percent <= 20 ? .red : .white
     }
 
     var body: some View {
-        let glyph = Image(systemName: symbol).font(.system(size: 19, weight: .regular))
+        // palette: the first style is the bolt, the second the battery
+        let glyph = Image(systemName: symbol).font(.system(size: 19, weight: .regular)).symbolRenderingMode(.palette)
         ZStack(alignment: .leading) {
-            glyph.foregroundStyle(.white.opacity(0.35))
-            glyph.foregroundStyle(color)
+            glyph.foregroundStyle(charging ? .white : .white.opacity(0.35), .white.opacity(0.35))
+            glyph.foregroundStyle(charging ? .white : color, color)
                 .mask(alignment: .leading) {
                     GeometryReader { g in
                         // the body takes up about the first 88 % of the symbol, the cap the rest
